@@ -25,7 +25,7 @@ namespace ImmGraphics
     public:
         static constexpr float PositiveInfinity = 3.402823466e+38F;
         static constexpr float NegativeInfinity = -3.402823466e+38F;
-        static constexpr float PI = 3.1415926;
+        static constexpr float PI = 3.1415926F;
         static constexpr float RAD = PI / 180;
         static constexpr float RRAD = 180 / PI;
 
@@ -43,7 +43,7 @@ namespace ImmGraphics
         static float ATan(float rad) { return atanf(rad); }
         static float ATan(float r1, float r2) { return atan2f(r1, r2); }
 
-        static float Sign(float v) { return v == 0 ? 0 : (v < 0 ? -1 : 1); }
+        static char Sign(float v) { return signbit(v); }
         static float Abs(float v) { return v < 0 ? -v : v; }
         static float Sqr(float v) { return v * v; }
         static float Sqrt(float v) { return sqrtf(v); }
@@ -54,6 +54,9 @@ namespace ImmGraphics
 
         static float Ceil(float v) { return ceilf(v); }
         static float Floor(float v) { return floorf(v); }
+
+        static bool NearZero(float v) { return Abs(v) < Precision; }
+        static bool NearOne(float v) { return Abs(v - 1) < Precision; }
 
         static bool Near(float a, float b) { return Abs(a - b) < Precision; }
         static float Pow(float v, float i) { return powf(v, i); }
@@ -87,9 +90,9 @@ namespace ImmGraphics
         static Vec2 NegativeInfinity() 
             { return Vec2(Math::NegativeInfinity, Math::NegativeInfinity); }
 
-        bool isZero() const { return x == 0 && y == 0; }
-        bool isIdentity() const { return x == 1 && y == 1; }
-        bool isNormalized() const { return Math::Near(LengthSqr(), 1); }
+        bool isZero() const { return Math::NearZero(x) && Math::NearZero(y); }
+        bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y); }
+        bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
         float& operator[](unsigned i) { _ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
         float operator[](unsigned i) const { _ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
@@ -106,13 +109,13 @@ namespace ImmGraphics
         void operator*=(float k) { x *= k; y *= k; }
         void operator/=(float k) { x /= k; y /= k; }
 
-        bool operator==(const Vec2& obj) const { return x == obj.x && y == obj.y; }
-        bool operator!=(const Vec2& obj) const { return x != obj.x || y != obj.y; }
+        bool operator==(const Vec2& obj) const { return Math::Near(x, obj.x) && Math::Near(y, obj.y); }
+        bool operator!=(const Vec2& obj) const { return !Math::Near(x, obj.x) || !Math::Near(y, obj.y); }
 
         float LengthSqr() const { return x * x + y * y; }
         float Length() const { return Math::Sqrt(x * x + y * y); }
 
-        void Normalize() { float len = Length(); if (len) { x /= len; y /= len; } }
+        void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; } }
         Vec2 getNormalized() const { Vec2 res(*this); res.Normalize(); return res; }
         void Reflect(const Vec2& normal) { float temp = 2 * Dot(*this, normal); operator-=(normal * temp); }
         Vec2 getReflected(const Vec2& normal) { Vec2 res(*this); res.Reflect(normal); return res; }
@@ -155,9 +158,9 @@ namespace ImmGraphics
         static Vec3 NegativeInfinity() 
             { return Vec3(Math::NegativeInfinity, Math::NegativeInfinity, Math::NegativeInfinity); }
 
-        bool isZero() const { return x == 0 && y == 0 && z == 0; }
-        bool isIdentity() const { return x == 1 && y == 1 && z == 1; }
-        bool isNormalized() const { return Math::Near(LengthSqr(), 1); }
+        bool isZero() const { return Math::NearZero(x) && Math::NearZero(y) && Math::NearZero(z); }
+        bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y) && Math::NearOne(z); }
+        bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
         float& operator[](unsigned i) 
             { _ASSERT(i < 3 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; return z; }
@@ -176,15 +179,15 @@ namespace ImmGraphics
         void operator*=(float k) { x *= k; y *= k; z *= k; }
         void operator/=(float k) { x /= k; y /= k; z /= k; }
 
-        bool operator==(const Vec3& obj) const { return x == obj.x && y == obj.y && z == obj.z; }
-        bool operator!=(const Vec3& obj) const { return x != obj.x || y != obj.y || z != obj.z; }
+        bool operator==(const Vec3& obj) const { return Math::Near(x, obj.x) && Math::Near(y, obj.y) && Math::Near(z, obj.z); }
+        bool operator!=(const Vec3& obj) const { return !Math::Near(x, obj.x) || !Math::Near(y, obj.y) || !Math::Near(z, obj.z); }
 
         operator Vec2() { return Vec2(x, y); }
 
         float LengthSqr() const { return x * x + y * y + z * z; }
         float Length() const { return Math::Sqrt(x * x + y * y + z * z); }
 
-        void Normalize() { float len = Length(); if (len) { x /= len; y /= len; z /= len; } }
+        void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; z /= len; } }
         Vec3 getNormalized() const { Vec3 res(*this); res.Normalize(); return res; }
         void Reflect(const Vec3& normal) { float temp = 2 * Dot(*this, normal); operator-=(normal * temp); }
         Vec3 getReflected(const Vec3& normal) { Vec3 res(*this); res.Reflect(normal); return res; }
@@ -223,9 +226,9 @@ namespace ImmGraphics
         static Vec4 NegativeInfinity() 
             { return Vec4(Math::NegativeInfinity, Math::NegativeInfinity, Math::NegativeInfinity, Math::NegativeInfinity); }
 
-        bool isZero() const { return x == 0 && y == 0 && z == 0 && w == 0; }
-        bool isIdentity() const { return x == 1 && y == 1 && z == 1 && w == 1; }
-        bool isNormalized() const { return  x * x + y * y + z * z + w * w == 1; }
+        bool isZero() const { return Math::NearZero(x) && Math::NearZero(y) && Math::NearZero(z) && Math::NearZero(w); }
+        bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y) && Math::NearOne(z) && Math::NearOne(w); }
+        bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
         float& operator[](unsigned i) 
             { _ASSERT(i < 4 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; if (i == 2) return z; return w; }
@@ -252,7 +255,7 @@ namespace ImmGraphics
         float LengthSqr() const { return x * x + y * y + z * z + w * w; }
         float Length() const { return Math::Sqrt(x * x + y * y + z * z + w * w); }
 
-        void Normalize() { float len = Length(); if (len) { x /= len; y /= len; z /= len; w /= len; } }
+        void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; z /= len; w /= len; } }
         Vec4 getNormalized() const { Vec4 res(*this); res.Normalize(); return res; }
 
         static float Distance(const Vec4& pointA, const Vec4& pointB) { return Vec4(pointB - pointA).Length(); }
@@ -351,14 +354,14 @@ namespace ImmGraphics
         {
             for (size_t i = 0; i < 3; i++)
                 for (size_t j = 0; j < 3; j++)
-                    if (value[i][j] != obj[i][j]) return false;
+                    if (!Math::Near(value[i][j], obj[i][j])) return false;
             return true;
         }
         bool operator!=(const Matrix3& obj) const
         {
             for (size_t i = 0; i < 3; i++)
                 for (size_t j = 0; j < 3; j++)
-                    if (value[i][j] != obj[i][j]) return true;
+                    if (!Math::Near(value[i][j], obj[i][j])) return true;
             return false;
         }
 
@@ -557,14 +560,14 @@ namespace ImmGraphics
         {
             for (size_t i = 0; i < 4; i++)
                 for (size_t j = 0; j < 4; j++)
-                    if (value[i][j] != obj[i][j]) return false;
+                    if (!Math::Near(value[i][j], obj[i][j])) return false;
             return true;
         }
         bool operator!=(const Matrix4& obj) const
         {
             for (size_t i = 0; i < 4; i++)
                 for (size_t j = 0; j < 4; j++)
-                    if (value[i][j] != obj[i][j]) return true;
+                    if (!Math::Near(value[i][j], obj[i][j])) return true;
             return false;
         }
 
