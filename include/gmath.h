@@ -247,8 +247,10 @@ namespace ImmGraphics
         void operator*=(float k) { x *= k; y *= k; z *= k; w *= k; }
         void operator/=(float k) { x /= k; y /= k; z /= k; w /= k; }
 
-        bool operator==(const Vec4& obj) const { return x == obj.x && y == obj.y && z == obj.z && w == obj.w; }
-        bool operator!=(const Vec4& obj) const { return x != obj.x || y != obj.y || z != obj.z || w != obj.w; }
+        bool operator==(const Vec4& obj) const 
+            { return Math::Near(x, obj.x) && Math::Near(y, obj.y) && Math::Near(z, obj.z) && Math::Near(w, obj.w); }
+        bool operator!=(const Vec4& obj) const 
+            { return !Math::Near(x, obj.x) || !Math::Near(y, obj.y) || !Math::Near(z, obj.z) || !Math::Near(w, obj.w); }
 
         operator Vec3() { return Vec3(x, y, z); }
 
