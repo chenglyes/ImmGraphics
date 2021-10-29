@@ -6,6 +6,8 @@ using namespace ImmGraphics;
 
 int main()
 {
+    cout << Math::Sign(-1.0f) << endl;
+    cout << "==============================" << endl;
 
     Vec3 vector3;
     cout << vector3.toString() << endl;

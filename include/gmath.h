@@ -43,7 +43,7 @@ namespace ImmGraphics
         static float ATan(float rad) { return atanf(rad); }
         static float ATan(float r1, float r2) { return atan2f(r1, r2); }
 
-        static char Sign(float v) { return signbit(v); }
+        static bool Sign(float v) { return std::signbit(v); }
         static float Abs(float v) { return v < 0 ? -v : v; }
         static float Sqr(float v) { return v * v; }
         static float Sqrt(float v) { return sqrtf(v); }
@@ -67,7 +67,7 @@ namespace ImmGraphics
         static float Max(float a, float b) { return a >= b ? a : b; }
         static float Max(float a, float b, float c) { return (a >= b ? (a >= c ? a : c) : (b >= c ? b : c)); }
         static float Clamp(float value, float min, float max) { return Min(Max(value, min), max); }
-        static float Lerp(float start, float end, float k) { return start + (end = start) * k; }
+        static float Lerp(float start, float end, float k) { return start + (end - start) * k; }
 
     };
 
@@ -679,6 +679,36 @@ namespace ImmGraphics
                 0, 0, 0, 1
             );
         }
+        static Matrix4 RotateByXAxis(float rad)
+        {
+            return Matrix4(
+                1, 0, 0, 0,
+                0, Math::Cos(rad), Math::Sin(rad), 0,
+                0, -Math::Sin(rad), Math::Cos(rad), 0,
+                0, 0, 0, 1
+            );
+        }
+        static Matrix4 RotateByYAxis(float rad)
+        {
+            return Matrix4(
+                Math::Cos(rad), 0, -Math::Sin(rad), 0,
+                0, 1, 0, 0,
+                Math::Sin(rad), 0, Math::Cos(rad), 0,
+                0, 0, 0, 1
+            );
+        }
+        static Matrix4 RotateByZAxis(float rad)
+        {
+            return Matrix4(
+                Math::Cos(rad), Math::Sin(rad), 0, 0,
+                -Math::Sin(rad), Math::Cos(rad), 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            );
+        }
+        static Matrix4 RotateByAxis(const Vec3& rotation) { return RotateByAxis(rotation.x, rotation.y, rotation.z); }
+        static Matrix4 RotateByAxis(float x, float y, float z)
+            { return RotateByXAxis(x) * RotateByYAxis(y) * RotateByZAxis(z); }
         static Matrix4 Orthogonal(const Vec3& vec)
         {
             // TODO: Orthogonal Matrix4
@@ -722,6 +752,27 @@ namespace ImmGraphics
             return os.str();
         }
     
+    };
+
+    /**
+     * @brief Transformation of object including position, rotation and scaling.
+     */
+    class Transform
+    {
+    public:
+        Vec3 position, rotation, scaling;
+
+    public:
+        Transform(
+            const Vec3& position = Vec3::Zero(), const Vec3& rotation = Vec3::Zero(), const Vec3& scaling = Vec3::Identity())
+            : position(position), rotation(rotation), scaling(scaling) {}
+
+        Matrix4 getMatrix() const
+        {
+            Vec3 rotationRad(Math::toRad(rotation.x), Math::toRad(rotation.y), Math::toRad(rotation.z));
+            return Matrix4::Translate(position) * Matrix4::RotateByAxis(rotationRad) * Matrix4::Scale(scaling); 
+        }
+
     };
 
 } // namespace ImmGraphics
