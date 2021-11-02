@@ -766,6 +766,7 @@ namespace ImmGraphics
         Transform(
             const Vec3& position = Vec3::Zero(), const Vec3& rotation = Vec3::Zero(), const Vec3& scaling = Vec3::Identity())
             : position(position), rotation(rotation), scaling(scaling) {}
+        static Transform Default() { return Transform(); }
 
         Matrix4 getMatrix() const
         {

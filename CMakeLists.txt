@@ -5,3 +5,4 @@ project(IMMGRAPHICS)
 include_directories(include)
 
 add_executable(gmath_test test/gmath_test.cpp)
+add_executable(test test/test.cpp)
