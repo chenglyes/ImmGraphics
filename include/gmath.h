@@ -64,8 +64,6 @@ namespace ImmGraphics
 
     };
 
-    float Math::Precision = 0.000001f;
-
     /**
     * @brief 2D Vector or Point
     */
