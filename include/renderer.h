@@ -14,13 +14,7 @@ namespace ImmGraphics
     public:
         Renderer(RenderDevice* target): m_pipelines(32)
             { _ASSERT(target && "No avaliable render target."); m_target = target; }
-        ~Renderer()
-        {
-            for (auto p : m_pipelines)
-            {
-                delete p;
-            }
-        }
+        ~Renderer() { for (auto p : m_pipelines) delete p; }
 
         void AddPipeline(RenderPipeline* pipeline)
         {
@@ -28,6 +22,12 @@ namespace ImmGraphics
             m_pipelines.PushBack(pipeline);
             pipeline->setRenderTarget(m_target);
             Debug::Print("Add Pipeline");
+        }
+
+        void Render()
+        {
+            doPipelines();
+            updateBuffer();
         }
 
         void Line()
@@ -48,7 +48,6 @@ namespace ImmGraphics
         void Box(const Transform& transform)
         {
             Debug::Print("Add Box Vertex");
-            doPipelines();
         }
 
         void Sphere()
@@ -67,6 +66,13 @@ namespace ImmGraphics
             for (auto p : m_pipelines)
             {
                 p->StartPipeline();
+            }
+        }
+
+        void updateBuffer()
+        {
+            for (auto p : m_pipelines)
+            {
                 p->UpdateBuffer();
             }
         }

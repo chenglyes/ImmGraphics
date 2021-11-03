@@ -5,14 +5,7 @@
 #include <cstring>
 #include <sstream>
 
-#ifdef _NO_ASSERT
-    #define _ASSERT
-#endif
-
-#ifndef _ASSERT
-    #include <cassert>
-    #define _ASSERT assert
-#endif // !_ASSERT
+#include "uitls.h"
 
 namespace ImmGraphics
 {
