@@ -8,14 +8,18 @@ int main()
 
     Renderer renderer(window->getDevice());
     renderer.AddPipeline(new ShaderPipeline);
+
+    window->ClearBuffer(0x1E2227);
+    
+    renderer.Box(Transform::Default());
+    renderer.Render();
+
     window->Show();
 
     while (!window->ShouldClose())
     {
-        window->ClearBuffer(0xFF0000FF);
-        renderer.Box(Transform::Default());
-        renderer.Render();
-        window->Draw();
+        
+        // window->Draw();
     }
 
     Window::DestroyWindow(window);

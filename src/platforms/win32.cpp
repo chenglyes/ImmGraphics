@@ -40,6 +40,7 @@ void Win32Window::Show()
     ShowWindow(m_hWnd, SW_SHOWDEFAULT);
     UpdateWindow(m_hWnd);
     SetFocus(m_hWnd);
+    Draw();
 }
 
 bool Win32Window::ShouldClose()

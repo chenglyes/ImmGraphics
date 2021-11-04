@@ -47,6 +47,7 @@ namespace ImmGraphics
 
         static float Ceil(float v) { return ceilf(v); }
         static float Floor(float v) { return floorf(v); }
+        static float Clamp01(float v) { return Clamp(v, 0, 1); }
 
         static bool NearZero(float v) { return Abs(v) < Precision; }
         static bool NearOne(float v) { return Abs(v - 1) < Precision; }
@@ -764,6 +765,195 @@ namespace ImmGraphics
             Vec3 rotationRad(Math::toRad(rotation.x), Math::toRad(rotation.y), Math::toRad(rotation.z));
             return Matrix4::Translate(position) * Matrix4::RotateByAxis(rotationRad) * Matrix4::Scale(scaling); 
         }
+
+    };
+
+    /**
+     * @brief RGBA Color
+     */
+    class Color
+    {
+    public:
+        float r, g, b, a;
+
+        enum ColorName : unsigned;
+
+    public:
+        Color(): r(0), g(0), b(0), a(1) {}
+        Color(float r, float g, float b, float a = 1): r(r), g(g), b(b), a(a) {}
+        Color(unsigned char rb, unsigned char gb, unsigned char bb, unsigned char ab = 255)
+        {
+            r = rb / 255.0f;
+            g = gb / 255.0f;
+            b = bb / 255.0f;
+            a = ab / 255.0f;
+        }
+        Color(ColorName color, float a = 1): a(a)
+        {
+            operator=(RGB(color));
+        }
+        static Color RGB(unsigned rgb)
+        {
+            return Color(
+                (unsigned char)((rgb >> 16) & 0xFF),
+                (unsigned char)((rgb >> 8) & 0xFF),
+                (unsigned char)(rgb & 0xFF)
+            );
+        }
+        static Color RGBA(unsigned rgba)
+        {
+            return Color(
+                (unsigned char)((rgba >> 24) & 0xFF),
+                (unsigned char)((rgba >> 16) & 0xFF),
+                (unsigned char)((rgba >> 8) & 0xFF),
+                (unsigned char)(rgba & 0xFF)
+            );
+        }
+
+        unsigned getRGBValue()
+        {
+            unsigned char rb = r * 255;
+            unsigned char gb = g * 255;
+            unsigned char bb = b * 255;
+            return (unsigned)(rb << 16) | (unsigned short)(gb << 8) | bb;
+        }
+        unsigned getRGBAValue()
+        {
+            unsigned char rb = r * 255;
+            unsigned char gb = g * 255;
+            unsigned char bb = b * 255;
+            unsigned char ab = a * 255;
+            return (unsigned)(rb << 24) | (unsigned)(gb << 16) | (unsigned short)(bb << 8) | ab;
+        }
+
+        Color operator+(const Color& obj) const
+        {
+            return Color(
+                Math::Clamp01(r + obj.r),
+                Math::Clamp01(g + obj.g),
+                Math::Clamp01(b + obj.b),
+                a
+            );
+        }
+        Color operator+(float k) const
+        {
+            return Color(
+                Math::Clamp01(r + k),
+                Math::Clamp01(g + k),
+                Math::Clamp01(b + k),
+                a
+            );
+        }
+        Color operator-(const Color& obj) const
+        {
+            return Color(
+                Math::Clamp01(r - obj.r),
+                Math::Clamp01(g - obj.g),
+                Math::Clamp01(b - obj.b),
+                a
+            );
+        }
+        Color operator-(float k) const
+        {
+            return Color(
+                Math::Clamp01(r - k),
+                Math::Clamp01(g - k),
+                Math::Clamp01(b - k),
+                a
+            );
+        }
+        Color operator*(const Color& obj) const { return Color(r * obj.r, g * obj.g, b * obj.b, a); }
+        Color operator*(float k) const
+        {
+            k = Math::Clamp01(k);
+            return Color(r * k, g * k, b * k, a);
+        }
+        Color operator/(float k) const
+        {
+            _ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
+            return Color(
+                Math::Clamp01(r / k),
+                Math::Clamp01(g / k),
+                Math::Clamp01(b / k),
+                a
+            );
+        }
+        Color operator~() const
+        {
+            return Color(1 - r, 1 - g, 1 - b, a);
+        }
+
+        void operator+=(const Color& obj)
+        {
+            r = Math::Clamp01(r + obj.r);
+            g = Math::Clamp01(g + obj.g);
+            b = Math::Clamp01(b + obj.b);
+        }
+        void operator+=(float k)
+        {
+            r = Math::Clamp01(r + k);
+            g = Math::Clamp01(g + k);
+            b = Math::Clamp01(b + k);
+        }
+        void operator-=(const Color& obj)
+        {
+            r = Math::Clamp01(r - obj.r);
+            g = Math::Clamp01(g - obj.g);
+            b = Math::Clamp01(b - obj.b);
+        }
+        void operator-=(float k)
+        {
+            r = Math::Clamp01(r - k);
+            g = Math::Clamp01(g - k);
+            b = Math::Clamp01(b - k);
+        }
+        void operator*=(const Color& obj)
+        {
+            r *= obj.r;
+            g *= obj.g;
+            b *= obj.b;
+        }
+        void operator*=(float k)
+        {
+            r = Math::Clamp01(r * k);
+            g = Math::Clamp01(g * k);
+            b = Math::Clamp01(b * k);
+        }
+        void operator/=(float k)
+        {
+            _ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
+            r = Math::Clamp01(r / k);
+            g = Math::Clamp01(g / k);
+            b = Math::Clamp01(b / k);
+        }
+
+        bool operator==(const Color& obj) const
+            {  return Math::Near(r, obj.r) && Math::Near(g, obj.g) && Math::Near(b, obj.b) && Math::Near(a, obj.a); }
+        bool operator!=(const Color& obj) const
+            {  return !Math::Near(r, obj.r) || !Math::Near(g, obj.g) || !Math::Near(b, obj.b) || !Math::Near(a, obj.a); }
+        
+        float getGray() const { return 0.2989 * r + 0.5870 * g + 0.1140 * b; }
+        Color getChannelR() const { return Color(r, 0, 0, a); }
+        Color getChannelG() const { return Color(0, g, 0, a); }
+        Color getChannelB() const { return Color(0, 0, b, a); }
+        Color getChannelRG() const { return Color(r, g, 0, a); }
+        Color getChannelRB() const { return Color(r, 0, b, a); }
+        Color getChannelBG() const { return Color(0, b, g, a); }
+
+        void Inverse() { r = 1 - r; g = 1 - g; b = 1 - b; }
+
+    public:
+        enum ColorName : unsigned
+        {
+            Black = 0x000000,
+            Red = 0xFF0000,
+            Green = 0x00FF00,
+            Blue = 0x0000FF,
+            Yellow = 0xFFFF00,
+            Magenta = 0xFF00FF,
+            Cyan = 0x00FFFF,
+            White = 0xFFFFFF
+        };
 
     };
 
