@@ -3,12 +3,13 @@
 
 namespace ImmGraphics
 {
-    // TODO: RenderDevice
+
     class RenderDevice
     {
     public:
         int width, height;
         void* frameBuffer;
+        void* zBuffer;
 
     };
 

@@ -15,6 +15,8 @@ namespace ImmGraphics
 
         virtual void Show() override;
         virtual bool ShouldClose() override;
+        virtual void ClearBuffer(unsigned color) override;
+        virtual void Draw() override;
 
         virtual RenderDevice* getDevice() override;
         virtual void* getHandle() override;
@@ -22,17 +24,22 @@ namespace ImmGraphics
     private:
         void Register(UINT style);
         void Create(int width, int height, DWORD style);
+        void CreateBuffer(int width, int height);
+        void ReleaseBuffer();
 
     private:
         RenderDevice m_device;
 
         LPCSTR m_className;
-
         HWND m_hWnd;
         HINSTANCE m_hInstance;
-
         MSG m_msg;
 
+        HDC m_hDC;
+        HDC m_hBufferDC;
+        HBITMAP m_hBufferBitmap;
+        HBITMAP m_hOldBitmap;
+        
     };
 
 } // namespace ImmGraphics

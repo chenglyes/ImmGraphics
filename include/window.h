@@ -15,6 +15,8 @@ namespace ImmGraphics
 
         virtual void Show() {}
         virtual bool ShouldClose() { return true; }
+        virtual void ClearBuffer(unsigned color) {}
+        virtual void Draw() {}
 
         virtual RenderDevice* getDevice() = 0;
         virtual void* getHandle() = 0;

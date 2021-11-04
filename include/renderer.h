@@ -17,6 +17,7 @@ namespace ImmGraphics
         void AddPipeline(RenderPipeline* pipeline);
         void Render();
 
+        void ClearBuffer(unsigned color);
         void Box(const Transform& transform);
 
     private:
