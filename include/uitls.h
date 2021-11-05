@@ -16,66 +16,101 @@ namespace ImmGraphics
 {
 
     /**
-     * @brief A light and fast container based on dynamic array.
-     *  It supports push and traverse method only now.
+     * @brief A lightweight container that supports dynamic growth
+     *  instead of std::vector<>.
      */
     template<typename T>
     class Container
     {
     public:
-        Container(unsigned size)
+        Container() : m_size(0), m_capacity(0), m_data(nullptr) {}
+        Container(unsigned size): Container() { Resize(size); memset(m_data, 0, size * sizeof(T)); }
+        Container(const Container<T>& src): Container() { operator=(src); }
+        Container<T>& operator=(const Container<T>& src)
         {
-            _ASSERT(size > 0 && "An empty container can not be defined.");
-            m_data = (T*)malloc(size * sizeof(T));
-            _ASSERT(m_data && "An error occurred while allocating memory.");
-            m_size = 0;
-            m_reserved = size;
+            Clear();
+            Resize(src.m_size);
+            memcpy(m_data, src.m_data, m_size * sizeof(T));
+            return *this;
         }
+        ~Container() { if (m_data) free(m_data); }
 
-        ~Container()
+        void Resize(unsigned size) { if (size > m_capacity) Reserve(growCapacity(size)); m_size = size; }
+        void Reserve(unsigned capacity)
         {
-            _ASSERT(m_data && "An error occurred while releasing memory.");
-            for (unsigned i = 0; i < m_reserved; ++i)
+            if (m_capacity >= capacity) return;
+            T* data = (T*)malloc(capacity * sizeof(T));
+            _ASSERT(data && "Memory allocation failed.");
+            memcpy(data, m_data, m_size * sizeof(T));
+            free(m_data);
+            m_data = data;
+            m_capacity = capacity;
+        }
+        void Clear()
+        {
+            if (m_data)
             {
-                delete (m_data + i);
+                m_size = 0;
+                m_capacity = 0;
+                free(m_data);
+                m_data = nullptr;
             }
         }
-
-        void Resize(unsigned size)
+        void SwapTo(Container& other)
         {
-            _ASSERT(size > 0 && "An empty container can not be defined.");
-            T* old_data = m_data;
-            unsigned old_reserved = m_reserved;
-            m_data = (T*)malloc(size * sizeof(T));
-            m_size = m_size <= size ? m_size : size;
-            m_reserved = size;
-            memcpy(m_data, old_data, m_size * sizeof(T));
-            for (unsigned i = 0; i < old_reserved; ++i)
-            {
-                delete (old_data + i);
-            }
+            unsigned tmp = other.m_size;
+            other.m_size = m_size;
+            m_size = tmp;
+
+            tmp = other.m_capacity;
+            other.m_capacity = m_capacity;
+            m_capacity = tmp;
+
+            T* ptmp = other.m_data;
+            other.m_data = m_data;
+            m_data = ptmp;
         }
 
         void PushBack(const T& element)
         {
-            _ASSERT(m_size < m_reserved && "The container is full, not enough to push a new element.");
-            *(m_data + m_size) = element;
-            m_size++;
+            if (m_size == m_capacity) Reserve(growCapacity(m_size + 1));
+            memcpy(m_data + m_size, &element, sizeof(element));
+            ++m_size;
         }
+        void PopBack() { _ASSERT(m_size > 0 && "The container is empty."); --m_size; }
+
+        bool isEmpty() const { return m_size == 0; }
+        unsigned getSize() const { return m_size; }
+        unsigned getByteSize() const { return m_size * sizeof(T); }
+        unsigned getCapacity() const { return m_capacity; }
+
+        T& operator[](unsigned i) { _ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
+        const T& operator[](unsigned i) const { _ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
+
+        T& getFront() { _ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
+        const T& getFront() const { _ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
+        T& getBack() { _ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
+        const T& getBack() const { _ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
 
         T* begin() { return m_data; }
-        T* end() { return m_data + m_size; }
         const T* begin() const { return m_data; }
+        T* end() { return m_data + m_size; }
         const T* end() const { return m_data + m_size; }
+        
+    private:
+        unsigned growCapacity(unsigned capacity)
+        {
+            unsigned new_capacity = m_capacity ? (m_capacity + m_capacity >> 1) : 8;
+            return new_capacity > capacity ? new_capacity : capacity;
+        }
 
     private:
         unsigned m_size;
-        unsigned m_reserved;
+        unsigned m_capacity;
         T * m_data;
 
     };
 
 } // namespace ImmGraphics
-
 
 #endif // !__IMMGRAPHICS_HEADER_UTILS__
