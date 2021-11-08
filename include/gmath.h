@@ -655,10 +655,10 @@ namespace ImmGraphics
         static Matrix4 Translate(float x, float y, float z)
         {
             return Matrix4(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                x, y, z, 1
+                1, 0, 0, x,
+                0, 1, 0, y,
+                0, 0, 1, z,
+                0, 0, 0, 1
             );
         }
         static Matrix4 Scale(const Vec3& vec) { return Scale(vec.x, vec.y, vec.z); }
@@ -710,6 +710,15 @@ namespace ImmGraphics
         {
             // TODO: Perspective Matrix4
             return Identity();
+        }
+        static Matrix4 Viewport(float width, float height)
+        {
+            return Matrix4(
+                width / 2, 0, 0, width / 2,
+                0, -height / 2, 0, height / 2,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            );
         }
         static Matrix4 LookAt(const Vec3& origin, const Vec3& target, const Vec3& up)
         {
@@ -780,7 +789,8 @@ namespace ImmGraphics
 
     public:
         Color(): r(0), g(0), b(0), a(1) {}
-        Color(float r, float g, float b, float a = 1): r(r), g(g), b(b), a(a) {}
+        Color(float r, float g, float b, float a = 1)
+            : r(Math::Clamp01(r)), g(Math::Clamp01(g)), b(Math::Clamp01(b)), a(Math::Clamp01(a)) {}
         Color(unsigned char rb, unsigned char gb, unsigned char bb, unsigned char ab = 255)
         {
             r = rb / 255.0f;

@@ -3,17 +3,12 @@
 
 #include <string>
 
-namespace ImmGraphics
-{
+#ifdef _DEBUG
+#include <iostream>
 
-    class Debug
-    {
-    public:
-        static void Print(const std::string& message);
+#define DEBUG_Print(msg) \
+    std::cout << "DEBUG-Print(" << __FILE__ << ", " << __LINE__ <<  "): " << msg << std::endl
 
-    };
-
-
-} // namespace ImmGraphics
+#endif
 
 #endif // !__IMMGRAPHICS_HEADER_DEBUG__

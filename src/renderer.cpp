@@ -1,9 +1,8 @@
 #include "renderer.h"
-#include "debug.h"
 
 using namespace ImmGraphics;
 
-Renderer::Renderer(RenderDevice* target): m_pipelines(32)
+Renderer::Renderer(RenderDevice* target)
 {
     _ASSERT(target && "No avaliable render target.");
     m_target = target;
@@ -19,26 +18,45 @@ void Renderer::AddPipeline(RenderPipeline* pipeline)
     _ASSERT(pipeline && "Invalid render pipeline.");
     m_pipelines.PushBack(pipeline);
     pipeline->setRenderTarget(m_target);
-    Debug::Print("Add Pipeline");
 }
 
 void Renderer::Render()
 {
-    doPipelines();
-    updateBuffer();
+    for (auto p : m_pipelines)
+        p->StartPipeline(m_vertices, m_indices);
+    m_vertices.Resize(0);
+    m_indices.Resize(0);
 }
 
-void Renderer::Box(const Transform& transform)
+void Renderer::Plane()
 {
-    Debug::Print("Add Box Vertex");
+    VertexBuffer vertices = {
+        { 0.5f, 0.5f, 0.0f },   // 右上角
+        { 0.5f, -0.5f, 0.0f },  // 右下角
+        { -0.5f, -0.5f, 0.0f }, // 左下角
+        { -0.5f, 0.5f, 0.0f}    // 左上角
+    };
+
+    IndexBuffer indices = {
+        0, 1, 3, // 第一个三角形
+        1, 2, 3  // 第二个三角形
+    };
+
+    Mesh(vertices, indices);
 }
 
-void Renderer::doPipelines()
+void Renderer::Box()
 {
-    for (auto p : m_pipelines) p->StartPipeline();
+    // TODO: Add Box Vertex
+    
 }
 
-void Renderer::updateBuffer()
+void Renderer::Mesh(const VertexBuffer& vertices, const IndexBuffer& indices)
 {
-    for (auto p : m_pipelines) p->UpdateBuffer();
+    unsigned beg = m_vertices.getSize();
+    m_vertices.PushBack(vertices);
+    for (unsigned p : indices)
+    {
+        m_indices.PushBack(p + beg);
+    }
 }

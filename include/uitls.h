@@ -2,6 +2,7 @@
 #define __IMMGRAPHICS_HEADER_UTILS__
 
 #include <cstring>
+#include <initializer_list>
 
 #ifdef _NO_ASSERT
     #define _ASSERT
@@ -25,6 +26,14 @@ namespace ImmGraphics
     public:
         Container() : m_size(0), m_capacity(0), m_data(nullptr) {}
         Container(unsigned size): Container() { Resize(size); memset(m_data, 0, size * sizeof(T)); }
+        Container(const std::initializer_list<T>& values): Container()
+        {
+            Reserve(values.size());
+            for (const auto& v : values)
+            {
+                PushBack(v);
+            }
+        }
         Container(const Container<T>& src): Container() { operator=(src); }
         Container<T>& operator=(const Container<T>& src)
         {
@@ -77,6 +86,7 @@ namespace ImmGraphics
             memcpy(m_data + m_size, &element, sizeof(element));
             ++m_size;
         }
+        void PushBack(const Container<T>& src) { for (const auto& p : src) PushBack(p); }
         void PopBack() { _ASSERT(m_size > 0 && "The container is empty."); --m_size; }
 
         bool isEmpty() const { return m_size == 0; }

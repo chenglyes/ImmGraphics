@@ -40,31 +40,27 @@ void Win32Window::Show()
     ShowWindow(m_hWnd, SW_SHOWDEFAULT);
     UpdateWindow(m_hWnd);
     SetFocus(m_hWnd);
-    Draw();
 }
 
 bool Win32Window::ShouldClose()
 {
-    if (m_msg.message == WM_QUIT) return true;
     if (PeekMessage(&m_msg, nullptr, 0, 0, PM_REMOVE))
     {
         TranslateMessage(&m_msg);
         DispatchMessage(&m_msg);
-    }
-    else
-    {
-        Sleep(1000 / 60);
+        if (m_msg.message == WM_QUIT) return true;
     }
     return false;
 }
 
 void Win32Window::ClearBuffer(unsigned color)
 {
-    for (unsigned i = 0; i < m_device.width * m_device.height; ++i)
-    {
-        *((unsigned*)m_device.frameBuffer + i) = color;
-        *((float*)m_device.zBuffer + i) = 0;
-    }
+    // for (unsigned i = 0; i < m_device.width * m_device.height; ++i)
+    // {
+    //     *((unsigned*)m_device.frameBuffer + i) = color;
+    //     *((float*)m_device.zBuffer + i) = 0;
+    // }
+    memset(m_device.frameBuffer, color, m_device.width * m_device.height * sizeof(color));
 }
 
 void Win32Window::Draw()

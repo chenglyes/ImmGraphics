@@ -18,19 +18,19 @@ namespace ImmGraphics
         void Render();
 
         void ClearBuffer(unsigned color);
-        void Box(const Transform& transform);
-
-    private:
-        void doPipelines();
-        void updateBuffer();
+        void Plane();
+        void Box();
+        void Mesh(const VertexBuffer& vertices, const IndexBuffer& indices);
 
     private:
         RenderDevice* m_target;
         Container<RenderPipeline*> m_pipelines;
 
+        VertexBuffer m_vertices;
+        IndexBuffer m_indices;
+
     };
 
 } // namespace ImmGraphics
-
 
 #endif // !__IMMGRAPHICS_HEADER_RENDERER__
