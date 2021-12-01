@@ -7,7 +7,7 @@ namespace ImmGraphics
     class RenderDevice
     {
     public:
-        int width, height;
+        unsigned width, height;
         void* frameBuffer;
         void* zBuffer;
 

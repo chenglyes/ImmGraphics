@@ -110,7 +110,7 @@ namespace ImmGraphics
     private:
         unsigned growCapacity(unsigned capacity)
         {
-            unsigned new_capacity = m_capacity ? (m_capacity + m_capacity >> 1) : 8;
+            unsigned new_capacity = m_capacity ? (m_capacity + (m_capacity >> 1)) : 8;
             return new_capacity > capacity ? new_capacity : capacity;
         }
 

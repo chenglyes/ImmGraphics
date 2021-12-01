@@ -55,12 +55,12 @@ bool Win32Window::ShouldClose()
 
 void Win32Window::ClearBuffer(unsigned color)
 {
-    // for (unsigned i = 0; i < m_device.width * m_device.height; ++i)
-    // {
-    //     *((unsigned*)m_device.frameBuffer + i) = color;
-    //     *((float*)m_device.zBuffer + i) = 0;
-    // }
-    memset(m_device.frameBuffer, color, m_device.width * m_device.height * sizeof(color));
+    #pragma omp parallel for
+    for (unsigned i = 0; i < m_device.width * m_device.height; ++i)
+    {
+        *((unsigned*)m_device.frameBuffer + i) = color;
+        *((float*)m_device.zBuffer + i) = 0;
+    }
 }
 
 void Win32Window::Draw()
