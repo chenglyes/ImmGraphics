@@ -3,13 +3,10 @@
 
 #include "device.h"
 #include "debug.h"
-#include "uitls.h"
+#include "vertex.h"
 
 namespace ImmGraphics
 {
-
-    typedef Container<Vec3> VertexBuffer;
-    typedef Container<unsigned> IndexBuffer;
 
     class RenderPipeline
     {
@@ -20,6 +17,13 @@ namespace ImmGraphics
         virtual void StartPipeline(const VertexBuffer& vertices, const IndexBuffer& indices) = 0;
 
         void setRenderTarget(RenderDevice* target) { m_device = target; }
+
+    protected:
+        virtual void setBuffer(unsigned x, unsigned y, unsigned value)
+        {
+            if (x < m_device->width && y < m_device->height)
+                *((unsigned *)m_device->frameBuffer + y * m_device->width + x) = value;
+        }
 
     protected:
         RenderDevice* m_device;

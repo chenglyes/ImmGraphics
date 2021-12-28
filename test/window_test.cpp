@@ -1,41 +1,42 @@
 #include "immgraphics.h"
 
+#include <cstdlib>
+
 using namespace ImmGraphics;
 
 class TestPipeline : public RenderPipeline
 {
 public:
-    TestPipeline(): m_time(0) {}
+    TestPipeline(): m_rad(0) {}
     virtual ~TestPipeline() = default;
 
     virtual void StartPipeline(const VertexBuffer &vertices, const IndexBuffer &indices) override
     {
 
-        unsigned i = 0;
-        while (i + 3 <= indices.getSize())
+        #pragma omp parallel for
+        for (unsigned i = 0; i < indices.getSize(); i += 3)
         {
             unsigned index0 = indices[i];
             unsigned index1 = indices[i + 1];
             unsigned index2 = indices[i + 2];
 
-            Vec3 v0 = vertices[index0];
-            Vec3 v1 = vertices[index1];
-            Vec3 v2 = vertices[index2];
+            Vertex v0 = vertices[index0];
+            Vertex v1 = vertices[index1];
+            Vertex v2 = vertices[index2];
 
-            Matrix4 transform = Matrix4::Viewport(m_device->width, m_device->height) * Matrix4::RotateByZAxis(Math::toRad(m_time));
-            v0 = transform * Vec4(v0, 1);
-            v1 = transform * Vec4(v1, 1);
-            v2 = transform * Vec4(v2, 1);
+            Matrix4 transform = Matrix4::Viewport(m_device->width, m_device->height) * Matrix4::RotateByZAxis(Math::toRad(m_rad));
+            v0.pos = transform * Vec4(v0.pos, 1);
+            v1.pos = transform * Vec4(v1.pos, 1);
+            v2.pos = transform * Vec4(v2.pos, 1);
 
-            setLine(v0.x, v0.y, v1.x, v1.y, Color::Cyan);
-            setLine(v1.x, v1.y, v2.x, v2.y, Color::Cyan);
-            setLine(v2.x, v2.y, v0.x, v0.y, Color::Cyan);
+            setLine(v0.pos.x, v0.pos.y, v1.pos.x, v1.pos.y, v0.color);
+            setLine(v1.pos.x, v1.pos.y, v2.pos.x, v2.pos.y, v1.color);
+            setLine(v2.pos.x, v2.pos.y, v0.pos.x, v0.pos.y, v2.color);
 
-            i += 3;
         }
-    }
+    } 
 
-    void Update() { ++m_time; }
+    void Update(float delta) { m_rad += delta * 8; }
 
 private:
     void setLine(int xf, int yf, int xt, int yt, unsigned color)
@@ -120,16 +121,16 @@ private:
     }
 
 private:
-    unsigned m_time;
+    float m_rad;
 
 };
 
 int main()
 {
     VertexBuffer vb = {
-        { 0, 0.5, 0 },
-        { 0.5, -0.5, 0 },
-        { -0.5, -0.5, 0 }
+        { {0, 0.5, 0}, Color::Red },
+        { {0.5, -0.5, 0}, Color::Green },
+        { {-0.5, -0.5, 0}, Color::Blue }
     };
 
     IndexBuffer ib = {
@@ -146,11 +147,13 @@ int main()
 
     while (!window->ShouldClose())
     {
-        window->ClearBuffer(0x27);
-        renderer.Plane();
+        auto fps = CalculateFPS();
+        DEBUG_Print("FPS: " << fps);
+        window->ClearBuffer(0x1E1F1C);
         renderer.Mesh(vb, ib);
+        renderer.Plane(Color::White);
         renderer.Render();
-        pipeline->Update();
+        pipeline->Update(getDeltaTime());
         window->Draw();
     }
 

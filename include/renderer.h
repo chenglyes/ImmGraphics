@@ -18,7 +18,7 @@ namespace ImmGraphics
         void Render();
 
         void ClearBuffer(unsigned color);
-        void Plane();
+        void Plane(unsigned color);
         void Box();
         void Mesh(const VertexBuffer& vertices, const IndexBuffer& indices);
 

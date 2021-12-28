@@ -19,3 +19,4 @@ file(GLOB_RECURSE src_files "src/*.cpp")
 
 add_executable(gmath_test test/gmath_test.cpp ${src_files})
 add_executable(window_test test/window_test.cpp ${src_files})
+add_executable(shader_test test/shader_test.cpp ${src_files})
