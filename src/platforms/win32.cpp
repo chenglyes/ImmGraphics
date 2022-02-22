@@ -2,18 +2,36 @@
 #include "uitls.h"
 #include "device.h"
 
+#include <omp.h>
+
 using namespace ImmGraphics;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static Window* window = nullptr;
+
+    if (message == WM_CREATE)
+    {
+        window = (Window*)((LPCREATESTRUCT)lParam)->lpCreateParams;
+    }
+
     switch (message)
     {
+    case WM_PAINT:
+        if (window) window->Draw();
+        break;
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+    default:
+        return DefWindowProc(hwnd, message, wParam, lParam);
+        break;
     }
     
-    return DefWindowProc(hwnd, message, wParam, lParam);
+    return 0;
 }
 
 Win32Window::Win32Window(int width, int height)
@@ -56,7 +74,7 @@ bool Win32Window::ShouldClose()
 void Win32Window::ClearBuffer(unsigned color)
 {
     #pragma omp parallel for
-    for (unsigned i = 0; i < m_device.width * m_device.height; ++i)
+    for (int i = 0; i < m_device.width * m_device.height; ++i)
     {
         *((unsigned*)m_device.frameBuffer + i) = color;
         *((float*)m_device.zBuffer + i) = 0;
@@ -84,7 +102,7 @@ void Win32Window::Register(UINT style)
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.cbSize = sizeof(wcex);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.hbrBackground = NULL;
     wcex.hCursor = (HCURSOR)LoadCursor(nullptr, IDC_ARROW);
     wcex.hIcon = nullptr;
     wcex.hIconSm = wcex.hIcon;
@@ -94,7 +112,9 @@ void Win32Window::Register(UINT style)
     wcex.lpszClassName = m_className;
     wcex.lpfnWndProc = WndProc;
 
-    _ASSERT(RegisterClassEx(&wcex) && "Fail to register window class.");
+    auto success = RegisterClassEx(&wcex);
+
+    _ASSERT(success && "Fail to register window class.");
 }
 
 void Win32Window::Create(int width, int height, DWORD style)
@@ -117,7 +137,7 @@ void Win32Window::Create(int width, int height, DWORD style)
         nullptr,
         nullptr,
         m_hInstance,
-        nullptr
+        LPVOID(this)
     );
 
     _ASSERT(m_hWnd && "Failed to create win32 window.");
@@ -160,11 +180,8 @@ void Win32Window::ReleaseBuffer()
     DeleteDC(m_hBufferDC);
     DeleteObject(m_hOldBitmap);
 
-    if (m_device.frameBuffer)
-    {
-        delete[] (unsigned*)m_device.frameBuffer;
-        m_device.frameBuffer = nullptr;
-    }
+    m_device.frameBuffer = nullptr;
+
     if (m_device.zBuffer)
     {
         delete[] (float*)m_device.zBuffer;

@@ -1,20 +1,22 @@
 #include "immgraphics.h"
 
 #include <cstdlib>
+#include <chrono>
+#include <thread>
+#include <omp.h>
 
 using namespace ImmGraphics;
 
 class TestPipeline : public RenderPipeline
 {
 public:
-    TestPipeline(): m_rad(0) {}
+    TestPipeline() {}
     virtual ~TestPipeline() = default;
 
     virtual void StartPipeline(const VertexBuffer &vertices, const IndexBuffer &indices) override
     {
-
         #pragma omp parallel for
-        for (unsigned i = 0; i < indices.getSize(); i += 3)
+        for (int i = 0; i < indices.getSize(); i += 3)
         {
             unsigned index0 = indices[i];
             unsigned index1 = indices[i + 1];
@@ -24,7 +26,7 @@ public:
             Vertex v1 = vertices[index1];
             Vertex v2 = vertices[index2];
 
-            Matrix4 transform = Matrix4::Viewport(m_device->width, m_device->height) * Matrix4::RotateByZAxis(Math::toRad(m_rad));
+            Matrix4 transform = Matrix4::Viewport(m_device->width, m_device->height);
             v0.pos = transform * Vec4(v0.pos, 1);
             v1.pos = transform * Vec4(v1.pos, 1);
             v2.pos = transform * Vec4(v2.pos, 1);
@@ -34,9 +36,7 @@ public:
             setLine(v2.pos.x, v2.pos.y, v0.pos.x, v0.pos.y, v2.color);
 
         }
-    } 
-
-    void Update(float delta) { m_rad += delta * 8; }
+    }
 
 private:
     void setLine(int xf, int yf, int xt, int yt, unsigned color)
@@ -114,49 +114,52 @@ private:
         }
     }
 
-    void setBuffer(unsigned x, unsigned y, unsigned value)
-    {
-        if (x < m_device->width && y < m_device->height)
-            *((unsigned *)m_device->frameBuffer + y * m_device->width + x) = value;
-    }
-
-private:
-    float m_rad;
-
 };
 
-int main()
+void RenderObjects(Renderer& renderer)
 {
-    VertexBuffer vb = {
+    static VertexBuffer vb = {
         { {0, 0.5, 0}, Color::Red },
         { {0.5, -0.5, 0}, Color::Green },
         { {-0.5, -0.5, 0}, Color::Blue }
     };
 
-    IndexBuffer ib = {
+    static IndexBuffer ib = {
         0, 1, 2
     };
 
+    renderer.Mesh(vb, ib);
+    renderer.Plane(Color::White);
+    renderer.Render();
+}
+
+int main()
+{
+    // Create window.
     Window *window = Window::GenerateWindow(806, 829);
-    TestPipeline* pipeline = new TestPipeline;
 
+    // Create renderer.
     Renderer renderer(window->getDevice());
-    renderer.AddPipeline(pipeline);
 
+    // Set pipelines.
+    renderer.AddPipeline(new TestPipeline);
+
+    // Render objects.
+    RenderObjects(renderer);
+
+    // Copy the buffer to window.
+    // window->Draw();
+
+    // Show the window.
     window->Show();
 
     while (!window->ShouldClose())
     {
-        auto fps = CalculateFPS();
-        DEBUG_Print("FPS: " << fps);
-        window->ClearBuffer(0x1E1F1C);
-        renderer.Mesh(vb, ib);
-        renderer.Plane(Color::White);
-        renderer.Render();
-        pipeline->Update(getDeltaTime());
-        window->Draw();
+        using namespace std::chrono;
+        std::this_thread::sleep_for(1ms);
     }
 
+    // Destroy the window.
     Window::DestroyWindow(window);
     return 0;
 }

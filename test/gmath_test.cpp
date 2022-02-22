@@ -61,6 +61,7 @@ int main()
     cout << Matrix4().Identity().getColumn(1).toString() << endl;
     cout << (Matrix4::Identity() * vector3).toString() << endl;
 
+    system("pause");
 
     return 0;
 }

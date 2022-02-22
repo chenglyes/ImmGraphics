@@ -2,6 +2,8 @@
 #include "pipelines/shaderpip.h"
 
 #include <cstdlib>
+#include <chrono>
+#include <thread>
 
 using namespace ImmGraphics;
 
@@ -31,6 +33,23 @@ public:
 
 };
 
+void RenderObjects(Renderer& renderer)
+{
+    static VertexBuffer vb = {
+        { {0, 0.5, 0}, Color::Red },
+        { {0.5, -0.5, 0}, Color::Green },
+        { {-0.5, -0.5, 0}, Color::Blue }
+    };
+
+    static IndexBuffer ib = {
+        0, 1, 2
+    };
+
+    renderer.Mesh(vb, ib);
+    renderer.Plane(Color::White);
+    renderer.Render();
+}
+
 int main()
 {
     VertexBuffer vb = {
@@ -53,15 +72,17 @@ int main()
 
     pipeline->AddShader(new TestShader);
 
+    RenderObjects(renderer);
+    window->Draw();
+
     while (!window->ShouldClose())
     {
-        auto fps = CalculateFPS();
-        DEBUG_Print("FPS: " << fps);
+        // auto fps = CalculateFPS();
+        // DEBUG_Print("FPS: " << fps);
         // window->ClearBuffer(0x1E1F1C);
-        renderer.Mesh(vb, ib);
-        renderer.Plane(Color::White);
-        renderer.Render();
-        window->Draw();
+        
+        using namespace std::chrono;
+        std::this_thread::sleep_for(1ms);
     }
 
     Window::DestroyWindow(window);
