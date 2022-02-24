@@ -39,7 +39,7 @@ void ShaderPipeline::StartPipeline(const VertexBuffer &vertices, const IndexBuff
 
 void ShaderPipeline::AddShader(Shader* shader)
 {
-    _ASSERT(shader && "Invalid shader.");
+    _DB_ASSERT(shader && "Invalid shader.");
     m_shaders.PushBack(shader);
 }
 

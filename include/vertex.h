@@ -17,7 +17,7 @@ namespace ImmGraphics
     };
 
     typedef Container<Vertex> VertexBuffer;
-    typedef Container<unsigned> IndexBuffer;
+    typedef Container<size_t> IndexBuffer;
 
 } // namespace ImmGraphics
 

@@ -86,8 +86,8 @@ namespace ImmGraphics
         bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y); }
         bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
-        float& operator[](unsigned i) { _ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
-        float operator[](unsigned i) const { _ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
+        float& operator[](size_t i) { _DB_ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
+        float operator[](size_t i) const { _DB_ASSERT(i < 2 && "The index is out of bounds."); if (i == 0) return x; return y; }
 
         Vec2 operator+(const Vec2& obj) const { return Vec2(x + obj.x, y + obj.y); }
         Vec2 operator-(const Vec2& obj) const { return Vec2(x - obj.x, y - obj.y); }
@@ -154,10 +154,10 @@ namespace ImmGraphics
         bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y) && Math::NearOne(z); }
         bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
-        float& operator[](unsigned i) 
-            { _ASSERT(i < 3 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; return z; }
-        float operator[](unsigned i) const
-            { _ASSERT(i < 3 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; return z; }
+        float& operator[](size_t i)
+            { _DB_ASSERT(i < 3 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; return z; }
+        float operator[](size_t i) const
+            { _DB_ASSERT(i < 3 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; return z; }
 
         Vec3 operator+(const Vec3& obj) const { return Vec3(x + obj.x, y + obj.y, z + obj.z); }
         Vec3 operator-(const Vec3& obj) const { return Vec3(x - obj.x, y - obj.y, z - obj.z); }
@@ -222,10 +222,10 @@ namespace ImmGraphics
         bool isIdentity() const { return Math::NearOne(x) && Math::NearOne(y) && Math::NearOne(z) && Math::NearOne(w); }
         bool isNormalized() const { return Math::NearOne(LengthSqr()); }
 
-        float& operator[](unsigned i) 
-            { _ASSERT(i < 4 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; if (i == 2) return z; return w; }
-        float operator[](unsigned i) const
-            { _ASSERT(i < 4 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; if (i == 2) return z; return w; }
+        float& operator[](size_t i) 
+            { _DB_ASSERT(i < 4 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; if (i == 2) return z; return w; }
+        float operator[](size_t i) const
+            { _DB_ASSERT(i < 4 && "The index is out of bounds."); if (i == 0) return x; if (i == 1) return y; if (i == 2) return z; return w; }
 
         Vec4 operator+(const Vec4& obj) const { return Vec4(x + obj.x, y + obj.y, z + obj.z, w + obj.w); }
         Vec4 operator-(const Vec4& obj) const { return Vec4(x - obj.x, y - obj.y, z - obj.z, w - obj.w); }
@@ -294,8 +294,8 @@ namespace ImmGraphics
         bool isZero() const { return operator==(Zero()); }
         bool isIdentity() const { return operator==(Identity()); }
         
-        float* operator[](unsigned i) { _ASSERT(i < 3 && "The index is out of bounds."); return value[i]; }
-        const float* operator[](unsigned i) const { _ASSERT(i < 3 && "The index is out of bounds."); return value[i]; }
+        float* operator[](size_t i) { _DB_ASSERT(i < 3 && "The index is out of bounds."); return value[i]; }
+        const float* operator[](size_t i) const { _DB_ASSERT(i < 3 && "The index is out of bounds."); return value[i]; }
 
         Matrix3 operator+(const Matrix3& obj) const
         {
@@ -378,9 +378,9 @@ namespace ImmGraphics
         }
 
         Vec3 getRow(unsigned i) const 
-            { _ASSERT(i < 3 && "The index is out of bounds."); return Vec3(value[i][0], value[i][1], value[i][2]); }
+            { _DB_ASSERT(i < 3 && "The index is out of bounds."); return Vec3(value[i][0], value[i][1], value[i][2]); }
         Vec3 getColumn(unsigned i) const 
-            { _ASSERT(i < 3 && "The index is out of bounds."); return Vec3(value[0][i], value[1][i], value[2][i]); }
+            { _DB_ASSERT(i < 3 && "The index is out of bounds."); return Vec3(value[0][i], value[1][i], value[2][i]); }
 
         float getDeterminant() const
         {
@@ -500,8 +500,8 @@ namespace ImmGraphics
         bool isZero() const { return operator==(Zero()); }
         bool isIdentity() const { return operator==(Identity()); }
         
-        float* operator[](unsigned i) { _ASSERT(i < 4 && "The index is out of bounds."); return value[i]; }
-        const float* operator[](unsigned i) const { _ASSERT(i < 4 && "The index is out of bounds."); return value[i]; }
+        float* operator[](size_t i) { _DB_ASSERT(i < 4 && "The index is out of bounds."); return value[i]; }
+        const float* operator[](size_t i) const { _DB_ASSERT(i < 4 && "The index is out of bounds."); return value[i]; }
 
         Matrix4 operator+(const Matrix4& obj) const
         {
@@ -585,9 +585,9 @@ namespace ImmGraphics
         }
 
         Vec4 getRow(unsigned i) const 
-            { _ASSERT(i < 4 && "The index is out of bounds."); return Vec4(value[i][0], value[i][1], value[i][2], value[i][3]); }
+            { _DB_ASSERT(i < 4 && "The index is out of bounds."); return Vec4(value[i][0], value[i][1], value[i][2], value[i][3]); }
         Vec4 getColumn(unsigned i) const 
-            { _ASSERT(i < 4 && "The index is out of bounds."); return Vec4(value[0][i], value[1][i], value[2][i], value[3][i]); }
+            { _DB_ASSERT(i < 4 && "The index is out of bounds."); return Vec4(value[0][i], value[1][i], value[2][i], value[3][i]); }
 
         float getDeterminant() const
         {
@@ -785,7 +785,17 @@ namespace ImmGraphics
     public:
         float r, g, b, a;
 
-        enum ColorName : unsigned;
+        enum ColorName : unsigned
+        {
+            Black = 0x000000,
+            Red = 0xFF0000,
+            Green = 0x00FF00,
+            Blue = 0x0000FF,
+            Yellow = 0xFFFF00,
+            Magenta = 0xFF00FF,
+            Cyan = 0x00FFFF,
+            White = 0xFFFFFF
+        };
 
     public:
         Color(): r(0), g(0), b(0), a(1) {}
@@ -800,7 +810,7 @@ namespace ImmGraphics
         }
         Color(ColorName color, float a = 1): a(a)
         {
-            operator=(RGB(color));
+            operator=(RGB((unsigned)color));
         }
         static Color RGB(unsigned rgb)
         {
@@ -822,17 +832,17 @@ namespace ImmGraphics
 
         unsigned getRGBValue()
         {
-            unsigned char rb = r * 255;
-            unsigned char gb = g * 255;
-            unsigned char bb = b * 255;
+            unsigned char rb = (unsigned char)(r * 255);
+            unsigned char gb = (unsigned char)(g * 255);
+            unsigned char bb = (unsigned char)(b * 255);
             return (unsigned)(rb << 16) | (unsigned short)(gb << 8) | bb;
         }
         unsigned getRGBAValue()
         {
-            unsigned char rb = r * 255;
-            unsigned char gb = g * 255;
-            unsigned char bb = b * 255;
-            unsigned char ab = a * 255;
+            unsigned char rb = (unsigned char)(r * 255);
+            unsigned char gb = (unsigned char)(g * 255);
+            unsigned char bb = (unsigned char)(b * 255);
+            unsigned char ab = (unsigned char)(a * 255);
             return (unsigned)(rb << 24) | (unsigned)(gb << 16) | (unsigned short)(bb << 8) | ab;
         }
 
@@ -880,7 +890,7 @@ namespace ImmGraphics
         }
         Color operator/(float k) const
         {
-            _ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
+            _DB_ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
             return Color(
                 Math::Clamp01(r / k),
                 Math::Clamp01(g / k),
@@ -931,7 +941,7 @@ namespace ImmGraphics
         }
         void operator/=(float k)
         {
-            _ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
+            _DB_ASSERT(k > 0 && "Color can only be divided by a number greater than 0.");
             r = Math::Clamp01(r / k);
             g = Math::Clamp01(g / k);
             b = Math::Clamp01(b / k);
@@ -942,7 +952,7 @@ namespace ImmGraphics
         bool operator!=(const Color& obj) const
             {  return !Math::Near(r, obj.r) || !Math::Near(g, obj.g) || !Math::Near(b, obj.b) || !Math::Near(a, obj.a); }
         
-        float getGray() const { return 0.2989 * r + 0.5870 * g + 0.1140 * b; }
+        float getGray() const { return (float)(0.2989 * r + 0.5870 * g + 0.1140 * b); }
         Color getChannelR() const { return Color(r, 0, 0, a); }
         Color getChannelG() const { return Color(0, g, 0, a); }
         Color getChannelB() const { return Color(0, 0, b, a); }
@@ -951,19 +961,6 @@ namespace ImmGraphics
         Color getChannelBG() const { return Color(0, b, g, a); }
 
         void Inverse() { r = 1 - r; g = 1 - g; b = 1 - b; }
-
-    public:
-        enum ColorName : unsigned
-        {
-            Black = 0x000000,
-            Red = 0xFF0000,
-            Green = 0x00FF00,
-            Blue = 0x0000FF,
-            Yellow = 0xFFFF00,
-            Magenta = 0xFF00FF,
-            Cyan = 0x00FFFF,
-            White = 0xFFFFFF
-        };
 
     };
 

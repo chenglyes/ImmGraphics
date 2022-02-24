@@ -2,8 +2,6 @@
 #include "uitls.h"
 #include "device.h"
 
-#include <omp.h>
-
 using namespace ImmGraphics;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -74,7 +72,7 @@ bool Win32Window::ShouldClose()
 void Win32Window::ClearBuffer(unsigned color)
 {
     #pragma omp parallel for
-    for (int i = 0; i < m_device.width * m_device.height; ++i)
+    for (int i = 0; i < int(m_device.width * m_device.height); ++i)
     {
         *((unsigned*)m_device.frameBuffer + i) = color;
         *((float*)m_device.zBuffer + i) = 0;
@@ -112,9 +110,7 @@ void Win32Window::Register(UINT style)
     wcex.lpszClassName = m_className;
     wcex.lpfnWndProc = WndProc;
 
-    auto success = RegisterClassEx(&wcex);
-
-    _ASSERT(success && "Fail to register window class.");
+    _DB_ASSERT(RegisterClassEx(&wcex) && "Fail to register window class.");
 }
 
 void Win32Window::Create(int width, int height, DWORD style)
@@ -140,7 +136,7 @@ void Win32Window::Create(int width, int height, DWORD style)
         LPVOID(this)
     );
 
-    _ASSERT(m_hWnd && "Failed to create win32 window.");
+    _DB_ASSERT(m_hWnd && "Failed to create win32 window.");
 }
 
 void Win32Window::CreateBuffer(int width, int height)
@@ -169,7 +165,7 @@ void Win32Window::CreateBuffer(int width, int height)
         0
     );
 
-    _ASSERT(m_hBufferBitmap && "Fail to create buffer.");
+    _DB_ASSERT(m_hBufferBitmap && "Fail to create buffer.");
 
     m_hOldBitmap = (HBITMAP)SelectObject(m_hBufferDC, m_hBufferBitmap);
 }

@@ -4,14 +4,12 @@
 #include <cstring>
 #include <initializer_list>
 
-#ifdef _NO_ASSERT
-    #define _ASSERT
-#endif
-
-#ifndef _ASSERT
+#ifndef _DEBUG
+    #define _DB_ASSERT(exp) exp
+#else
     #include <cassert>
-    #define _ASSERT assert
-#endif // !_ASSERT
+    #define _DB_ASSERT assert
+#endif // !_DEBUG
 
 namespace ImmGraphics
 {
@@ -25,7 +23,7 @@ namespace ImmGraphics
     {
     public:
         Container() : m_size(0), m_capacity(0), m_data(nullptr) {}
-        Container(unsigned size): Container() { Resize(size); memset(m_data, 0, size * sizeof(T)); }
+        Container(size_t size): Container() { Resize(size); memset(m_data, 0, size * sizeof(T)); }
         Container(const std::initializer_list<T>& values): Container()
         {
             Reserve(values.size());
@@ -44,12 +42,12 @@ namespace ImmGraphics
         }
         ~Container() { if (m_data) free(m_data); }
 
-        void Resize(unsigned size) { if (size > m_capacity) Reserve(growCapacity(size)); m_size = size; }
-        void Reserve(unsigned capacity)
+        void Resize(size_t size) { if (size > m_capacity) Reserve(growCapacity(size)); m_size = size; }
+        void Reserve(size_t capacity)
         {
             if (m_capacity >= capacity) return;
             T* data = (T*)malloc(capacity * sizeof(T));
-            _ASSERT(data && "Memory allocation failed.");
+            _DB_ASSERT(data && "Memory allocation failed.");
             memcpy(data, m_data, m_size * sizeof(T));
             free(m_data);
             m_data = data;
@@ -67,7 +65,7 @@ namespace ImmGraphics
         }
         void SwapTo(Container& other)
         {
-            unsigned tmp = other.m_size;
+            size_t tmp = other.m_size;
             other.m_size = m_size;
             m_size = tmp;
 
@@ -87,20 +85,20 @@ namespace ImmGraphics
             ++m_size;
         }
         void PushBack(const Container<T>& src) { for (const auto& p : src) PushBack(p); }
-        void PopBack() { _ASSERT(m_size > 0 && "The container is empty."); --m_size; }
+        void PopBack() { _DB_ASSERT(m_size > 0 && "The container is empty."); --m_size; }
 
         bool isEmpty() const { return m_size == 0; }
-        unsigned getSize() const { return m_size; }
-        unsigned getByteSize() const { return m_size * sizeof(T); }
-        unsigned getCapacity() const { return m_capacity; }
+        size_t getSize() const { return m_size; }
+        size_t getByteSize() const { return m_size * sizeof(T); }
+        size_t getCapacity() const { return m_capacity; }
 
-        T& operator[](unsigned i) { _ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
-        const T& operator[](unsigned i) const { _ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
+        T& operator[](size_t i) { _DB_ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
+        const T& operator[](size_t i) const { _DB_ASSERT(i < m_size && "The index is out of bounds."); return m_data[i]; }
 
-        T& getFront() { _ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
-        const T& getFront() const { _ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
-        T& getBack() { _ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
-        const T& getBack() const { _ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
+        T& getFront() { _DB_ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
+        const T& getFront() const { _DB_ASSERT(m_size > 0 && "The container is empty."); return m_data[0]; }
+        T& getBack() { _DB_ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
+        const T& getBack() const { _DB_ASSERT(m_size > 0 && "The container is empty."); return m_data[m_size - 1]; }
 
         T* begin() { return m_data; }
         const T* begin() const { return m_data; }
@@ -108,15 +106,15 @@ namespace ImmGraphics
         const T* end() const { return m_data + m_size; }
         
     private:
-        unsigned growCapacity(unsigned capacity)
+        size_t growCapacity(size_t capacity)
         {
-            unsigned new_capacity = m_capacity ? (m_capacity + (m_capacity >> 1)) : 8;
+            size_t new_capacity = m_capacity ? (m_capacity + (m_capacity >> 1)) : 8;
             return new_capacity > capacity ? new_capacity : capacity;
         }
 
     private:
-        unsigned m_size;
-        unsigned m_capacity;
+        size_t m_size;
+        size_t m_capacity;
         T * m_data;
 
     };

@@ -4,7 +4,7 @@ using namespace ImmGraphics;
 
 Renderer::Renderer(RenderDevice* target)
 {
-    _ASSERT(target && "No avaliable render target.");
+    _DB_ASSERT(target && "No avaliable render target.");
     m_target = target;
 }
 
@@ -15,7 +15,7 @@ Renderer::~Renderer()
 
 void Renderer::AddPipeline(RenderPipeline* pipeline)
 {
-    _ASSERT(pipeline && "Invalid render pipeline.");
+    _DB_ASSERT(pipeline && "Invalid render pipeline.");
     m_pipelines.PushBack(pipeline);
     pipeline->setRenderTarget(m_target);
 }
@@ -31,15 +31,15 @@ void Renderer::Render()
 void Renderer::Plane(unsigned color)
 {
     VertexBuffer vertices = {
-        { {0.5f, 0.5f, 0.0f}, color },     // 右上角
-        { {0.5f, -0.5f, 0.0f}, color },    // 右下角
-        { {-0.5f, -0.5f, 0.0f}, color },   // 左下角
-        { {-0.5f, 0.5f, 0.0f}, color }     // 左上角
+        { {0.5f, 0.5f, 0.0f}, color },     // right top
+        { {0.5f, -0.5f, 0.0f}, color },    // right bottom
+        { {-0.5f, -0.5f, 0.0f}, color },   // left bottom
+        { {-0.5f, 0.5f, 0.0f}, color }     // left top
     };
 
     IndexBuffer indices = {
-        0, 1, 3,    // 第一个三角形
-        1, 2, 3     // 第二个三角形
+        0, 1, 3,    // first triangle
+        1, 2, 3     // second triangle
     };
 
     Mesh(vertices, indices);
@@ -53,9 +53,9 @@ void Renderer::Box()
 
 void Renderer::Mesh(const VertexBuffer& vertices, const IndexBuffer& indices)
 {
-    unsigned beg = m_vertices.getSize();
+    size_t beg = m_vertices.getSize();
     m_vertices.PushBack(vertices);
-    for (unsigned p : indices)
+    for (size_t p : indices)
     {
         m_indices.PushBack(p + beg);
     }
