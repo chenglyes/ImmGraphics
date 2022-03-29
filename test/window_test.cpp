@@ -115,6 +115,7 @@ private:
 
 };
 
+// All objects rendered in here.
 void RenderObjects(Renderer& renderer)
 {
     static VertexBuffer vb = {
@@ -155,7 +156,15 @@ int main()
     while (!window->ShouldClose())
     {
         using namespace std::chrono;
-        std::this_thread::sleep_for(1ms);
+
+        auto fps = CalculateFPS();
+        DEBUG_Print("FPS: " << fps);
+
+        renderer.Render();
+        
+        window->Draw();
+
+        // std::this_thread::sleep_for(1ms);
     }
 
     // Destroy the window.

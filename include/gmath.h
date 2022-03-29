@@ -96,6 +96,9 @@ namespace ImmGraphics
         friend Vec2 operator*(float k, const Vec2& vec) { return vec * k; }
         Vec2 operator/(float k) const { return Vec2(x / k, y / k); }
 
+        float operator*(const Vec2& vec) const { return Dot(*this, vec); }
+        float operator^(const Vec2& vec) const { return Cross(*this, vec); }
+
         void operator+=(const Vec2& obj) { x += obj.x; y += obj.y; }
         void operator-=(const Vec2& obj) { x -= obj.x; y -= obj.y; }
         void operator*=(float k) { x *= k; y *= k; }
@@ -166,6 +169,9 @@ namespace ImmGraphics
         friend Vec3 operator*(float k, const Vec3& vec) { return vec * k; }
         Vec3 operator/(float k) const { return Vec3(x / k, y / k, z / k); }
 
+        float operator*(const Vec3& vec) const { return Dot(*this, vec); }
+        Vec3 operator^(const Vec3& vec) const { return Cross(*this, vec); }
+
         void operator+=(const Vec3& obj) { x += obj.x; y += obj.y; z += obj.z; }
         void operator-=(const Vec3& obj) { x -= obj.x; y -= obj.y; z -= obj.z; }
         void operator*=(float k) { x *= k; y *= k; z *= k; }
@@ -233,6 +239,8 @@ namespace ImmGraphics
         Vec4 operator*(float k) const { return Vec4(x * k, y * k, z * k, w * k); }
         friend Vec4 operator*(float k, const Vec4& vec) { return vec * k; }
         Vec4 operator/(float k) const { return Vec4(x / k, y / k, z / k, w / k); }
+
+        float operator*(const Vec4& vec) const { return Dot(*this, vec); }
 
         void operator+=(const Vec4& obj) { x += obj.x; y += obj.y; z += obj.z; w += obj.w; }
         void operator-=(const Vec4& obj) { x -= obj.x; y -= obj.y; z -= obj.z; w -= obj.w; }
@@ -753,6 +761,78 @@ namespace ImmGraphics
             return os.str();
         }
     
+    };
+
+    /**
+     * @brief Tools class of triangle planes in 2D.
+     */
+    class Triangle2D
+    {
+    public:
+        Vec2 a, b, c;
+
+    public:
+        Triangle2D() : a(), b(), c() {}
+        Triangle2D(const Vec2& a, const Vec2& b, const Vec2& c) : a(a), b(b), c(c) {}
+
+        bool operator==(const Triangle2D& t) { return t.a == a && t.b == b && t.c == c; }
+
+        float Area() {}
+
+        bool InArea(const Vec2& position) const
+        {
+            Vec2 ab = b - a;
+            Vec2 bc = c - b;
+            Vec2 ca = a - c;
+            Vec2 ap = position - a;
+            Vec2 bp = position - b;
+            Vec2 cp = position - c;
+
+            float va = ab ^ ap;
+            float vb = bc ^ bp;
+            float vc = ca ^ cp;
+
+            if (va >= 0 && vb > 0 && vc > 0 ||
+                va <= 0 && vb < 0 && vc < 0)
+                return true;
+            return false;
+        }
+
+    };
+
+    /**
+     * @brief Tools class of triangle planes in 3D.
+     */
+    class Triangle3D
+    {
+    public:
+        Vec3 a, b, c;
+
+    public:
+        Triangle3D() : a(), b(), c() {}
+        Triangle3D(const Vec3& a, const Vec3& b, const Vec3& c) : a(a), b(b), c(c) {}
+
+        bool operator==(const Triangle3D& t) { return t.a == a && t.b == b && t.c == c; }
+
+        Triangle2D Project() const
+        {
+            Triangle2D t;
+            t.a = (Vec3)a;
+            t.b = (Vec3)b;
+            t.c = (Vec3)c;
+            return t;
+        }
+
+        Vec3 Interpolation(const Vec3& p) const
+        {
+            float wa = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x)* (a.y - c.y));
+            float wb = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
+            float wc = 1 - wa - wb;
+
+            return { wa, wb, wc };
+        }
     };
 
     /**
