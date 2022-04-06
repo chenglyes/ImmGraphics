@@ -17,7 +17,7 @@ namespace ImmGraphics
         void AddPipeline(RenderPipeline* pipeline);
         void Render();
 
-        void Plane(unsigned color);
+        void Plane(const Vec3& color);
         void Box();
         void Mesh(const VertexBuffer& vertices, const IndexBuffer& indices);
 

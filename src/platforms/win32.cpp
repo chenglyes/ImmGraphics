@@ -69,13 +69,14 @@ bool Win32Window::ShouldClose()
     return false;
 }
 
-void Win32Window::ClearBuffer(unsigned color)
+void Win32Window::ClearBuffer()
 {
+    memset(m_device.frameBuffer, 0, sizeof(unsigned) * m_device.width * m_device.height);
+
     #pragma omp parallel for
     for (int i = 0; i < int(m_device.width * m_device.height); ++i)
     {
-        *((unsigned*)m_device.frameBuffer + i) = color;
-        *((float*)m_device.zBuffer + i) = 0;
+        *((float*)m_device.zBuffer + i) = 100;
     }
 }
 

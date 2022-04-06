@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <map>
 
 #include "uitls.h"
 
@@ -144,10 +145,10 @@ namespace ImmGraphics
         static Vec3 Identity() { return Vec3(1, 1, 1); }
         static Vec3 Left() { return Vec3(-1, 0, 0); }
         static Vec3 Right() { return Vec3(1, 0, 0); }
-        static Vec3 Forward() { return Vec3(0, 1, 0); }
-        static Vec3 Back() { return Vec3(0, -1, 0); }
-        static Vec3 Up() { return Vec3(0, 0, 1); }
-        static Vec3 Down() { return Vec3(0, 0, -1); }
+        static Vec3 Forward() { return Vec3(0, 0, 1); }
+        static Vec3 Back() { return Vec3(0, 0, -1); }
+        static Vec3 Up() { return Vec3(0, 1, 0); }
+        static Vec3 Down() { return Vec3(0, -1, 0); }
         static Vec3 PositiveInfinity() 
             { return Vec3(Math::PositiveInfinity, Math::PositiveInfinity, Math::PositiveInfinity); }
         static Vec3 NegativeInfinity() 
@@ -714,10 +715,36 @@ namespace ImmGraphics
             // TODO: Orthogonal Matrix4
             return Identity();
         }
-        static Matrix4 Perspective(const Vec3& vec)
+        static Matrix4 Perspective(float aspect, float fov, float near, float far)
         {
-            // TODO: Perspective Matrix4
-            return Identity();
+            float f = Math::Tan(Math::PI * 0.5f - 0.5 * fov);
+            float rangeInv = 1.0 / (near - far);
+            return Matrix4(
+                f / aspect, 0.0f, 0.0f, 0.0f, 
+                0.0f, f, 0.0f, 0.0f,
+                0.0f, 0.0f, (near + far) * rangeInv, 1.0f, 
+                0.0f, 0.0f, near * far * rangeInv * 2.0f, 0.0f
+            );
+        }
+        static Matrix4 View(const Vec3& pos, const Vec3& target, const Vec3& viewUp)
+        {
+            Vec3 forward = (target - pos).getNormalized();
+            Vec3 up = viewUp.getNormalized();
+            Vec3 right = up.getNormalized() ^ forward;
+            
+            Matrix4 rotateMat(
+                right.x, right.y, right.z, 
+                0.0f, up.x, up.y, up.z, 0.0f,
+                forward.x, forward.y, forward.z, 0.0f, 
+                0.0f, 0.0f, 0.0f, 1.0f);
+
+            Matrix4 translateMat(
+                1.0f, 0.0f, 0.0f, -pos.x, 
+                0.0f, 1.0f, 0.0f, -pos.y,
+                0.0f, 0.0f, 1.0f, -pos.z, 
+                0.0f, 0.0f, 0.0f, 1.0f);
+
+            return rotateMat * translateMat;
         }
         static Matrix4 Viewport(float width, float height)
         {
@@ -777,9 +804,12 @@ namespace ImmGraphics
 
         bool operator==(const Triangle2D& t) { return t.a == a && t.b == b && t.c == c; }
 
-        float Area() {}
+        float Area()
+        {
+            return 0.5f * Math::Abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
+        }
 
-        bool InArea(const Vec2& position) const
+        bool Contain(const Vec2& position) const
         {
             Vec2 ab = b - a;
             Vec2 bc = c - b;
@@ -788,14 +818,27 @@ namespace ImmGraphics
             Vec2 bp = position - b;
             Vec2 cp = position - c;
 
-            float va = ab ^ ap;
-            float vb = bc ^ bp;
-            float vc = ca ^ cp;
+            float va = ap ^ ab;
+            float vb = bp ^ bc;
+            float vc = cp ^ ca;
 
-            if (va >= 0 && vb > 0 && vc > 0 ||
-                va <= 0 && vb < 0 && vc < 0)
+            if ((va >= 0 && vb > 0 && vc > 0) ||
+                (va <= 0 && vb < 0 && vc < 0))
                 return true;
             return false;
+        }
+
+        Vec3 Interpolation(const Vec2& p) const
+        {
+            Vec3 weight;
+
+            weight.x = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
+            weight.y = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
+            weight.z = 1 - weight.x - weight.y;
+
+            return weight;
         }
 
     };
@@ -817,21 +860,10 @@ namespace ImmGraphics
         Triangle2D Project() const
         {
             Triangle2D t;
-            t.a = (Vec3)a;
-            t.b = (Vec3)b;
-            t.c = (Vec3)c;
+            t.a = Vec2(a.x, a.y);
+            t.b = Vec2(b.x, b.y);
+            t.c = Vec2(c.x, c.y);
             return t;
-        }
-
-        Vec3 Interpolation(const Vec3& p) const
-        {
-            float wa = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) /
-                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x)* (a.y - c.y));
-            float wb = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) /
-                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
-            float wc = 1 - wa - wb;
-
-            return { wa, wb, wc };
         }
     };
 
@@ -888,18 +920,20 @@ namespace ImmGraphics
             b = bb / 255.0f;
             a = ab / 255.0f;
         }
-        Color(ColorName color, float a = 1): a(a)
+        Color(ColorName color, float a = 1): Color((unsigned char)((color >> 16) & 0xFF),
+            (unsigned char)((color >> 8) & 0xFF),
+            (unsigned char)(color & 0xFF))
         {
-            operator=(RGB((unsigned)color));
+            this->a = a;
         }
-        static Color RGB(unsigned rgb)
+        /*static Color RGB(unsigned rgb)
         {
             return Color(
                 (unsigned char)((rgb >> 16) & 0xFF),
                 (unsigned char)((rgb >> 8) & 0xFF),
                 (unsigned char)(rgb & 0xFF)
             );
-        }
+        }*/
         static Color RGBA(unsigned rgba)
         {
             return Color(

@@ -24,11 +24,11 @@ void Renderer::Render()
 {
     for (auto p : m_pipelines)
         p->StartPipeline(m_vertices, m_indices);
-    m_vertices.Resize(0);
-    m_indices.Resize(0);
+    // m_vertices.Resize(0);
+    // m_indices.Resize(0);
 }
 
-void Renderer::Plane(unsigned color)
+void Renderer::Plane(const Vec3& color)
 {
     VertexBuffer vertices = {
         { {0.5f, 0.5f, 0.0f}, color },     // right top

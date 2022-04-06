@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    void setLine(int xf, int yf, int xt, int yt, unsigned color)
+    void setLine(int xf, int yf, int xt, int yt, const Vec3& color)
     {
         if (xf > xt)
         {
@@ -59,7 +59,7 @@ private:
         {
             for (int x = xf, y = yf; x <= xt; x++)
             {
-                setBuffer(x, y, color);
+                setBuffer(x, y, 0, Color(color.x, color.y, color.z).getRGBValue());
                 if ((f + dy) + (f + dy - dx) < 0)
                     f += dy;
                 else
@@ -73,7 +73,7 @@ private:
         {
             for (int x = xf, y = yf; y <= yt; y++)
             {
-                setBuffer(x, y, color);
+                setBuffer(x, y, 0, Color(color.x, color.y, color.z).getRGBValue());
                 if ((f - dx) + (f - dx + dy) > 0)
                     f += -dx;
                 else
@@ -87,7 +87,7 @@ private:
         {
             for (int x = xf, y = yf; x <= xt; x++)
             {
-                setBuffer(x, y, color);
+                setBuffer(x, y, 0, Color(color.x, color.y, color.z).getRGBValue());
                 if ((f + dy) + (f + dy + dx) > 0)
                     f += dy;
                 else
@@ -101,7 +101,7 @@ private:
         {
             for (int x = xf, y = yf; y >= yt; y--)
             {
-                setBuffer(x, y, color);
+                setBuffer(x, y, 0, Color(color.x, color.y, color.z).getRGBValue());
                 if ((f + dx) + (f + dy + dx) < 0)
                     f += dx;
                 else
@@ -116,12 +116,12 @@ private:
 };
 
 // All objects rendered in here.
-void RenderObjects(Renderer& renderer)
+void SubmitObjects(Renderer& renderer)
 {
     static VertexBuffer vb = {
-        { {0, 0.5, 0}, Color::Red },
-        { {0.5, -0.5, 0}, Color::Green },
-        { {-0.5, -0.5, 0}, Color::Blue }
+        { {0, 0.5, 0}, {1, 0, 0} },
+        { {0.5, -0.5, 0}, {0, 1, 0} },
+        { {-0.5, -0.5, 0}, {0, 0, 1} }
     };
 
     static IndexBuffer ib = {
@@ -129,7 +129,7 @@ void RenderObjects(Renderer& renderer)
     };
 
     renderer.Mesh(vb, ib);
-    renderer.Plane(Color::White);
+    renderer.Plane(Vec3(1, 1, 1));
     renderer.Render();
 }
 
@@ -145,7 +145,7 @@ int main()
     renderer.AddPipeline(new TestPipeline);
 
     // Render objects.
-    RenderObjects(renderer);
+    SubmitObjects(renderer);
 
     // Copy the buffer to window.
     // window->Draw();
@@ -160,8 +160,8 @@ int main()
         auto fps = CalculateFPS();
         DEBUG_Print("FPS: " << fps);
 
+        window->ClearBuffer();
         renderer.Render();
-        
         window->Draw();
 
         // std::this_thread::sleep_for(1ms);

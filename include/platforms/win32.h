@@ -15,7 +15,7 @@ namespace ImmGraphics
 
         virtual void Show() override;
         virtual bool ShouldClose() override;
-        virtual void ClearBuffer(unsigned color) override;
+        virtual void ClearBuffer() override;
         virtual void Draw() override;
 
         virtual RenderDevice* getDevice() override;

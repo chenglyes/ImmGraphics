@@ -6,12 +6,12 @@
 
 namespace ImmGraphics
 {
-    
+
     class Vertex
     {
     public:
         Vec3 pos;
-        unsigned color;
+        Vec3 color;
         Vec3 norm;
         Vec2 uv;
     };
