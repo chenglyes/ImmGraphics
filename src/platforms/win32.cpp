@@ -69,20 +69,9 @@ bool Win32Window::ShouldClose()
     return false;
 }
 
-void Win32Window::ClearBuffer()
-{
-    memset(m_device.frameBuffer, 0, sizeof(unsigned) * m_device.width * m_device.height);
-
-    #pragma omp parallel for
-    for (int i = 0; i < int(m_device.width * m_device.height); ++i)
-    {
-        *((float*)m_device.zBuffer + i) = 100;
-    }
-}
-
 void Win32Window::Draw()
 {
-    BitBlt(m_hDC, 0, 0, m_device.width, m_device.height, m_hBufferDC, 0, 0, SRCCOPY);
+    BitBlt(m_hDC, 0, 0, m_device.GetWidth(), m_device.GetHeight(), m_hBufferDC, 0, 0, SRCCOPY);
 }
 
 RenderDevice* Win32Window::getDevice()
@@ -142,10 +131,10 @@ void Win32Window::Create(int width, int height, DWORD style)
 
 void Win32Window::CreateBuffer(int width, int height)
 {
-    m_device.width = width;
-    m_device.height = height;
+    m_device.SetWidth(width);
+    m_device.SetHeight(height);
 
-    m_device.zBuffer = (void*)new float[width * height] { 0 };
+    m_device.GetZBuffer() = new float[width * height]{0};
 
     m_hDC = GetDC(m_hWnd);
     m_hBufferDC = CreateCompatibleDC(nullptr);
@@ -161,7 +150,7 @@ void Win32Window::CreateBuffer(int width, int height)
     m_hBufferBitmap = CreateDIBSection(
         nullptr,
         (PBITMAPINFO)&bmphdr,
-        DIB_RGB_COLORS, &m_device.frameBuffer,
+        DIB_RGB_COLORS, (void**)&m_device.GetFrameBuffer(),
         nullptr, 
         0
     );
@@ -169,6 +158,8 @@ void Win32Window::CreateBuffer(int width, int height)
     _DB_ASSERT(m_hBufferBitmap && "Fail to create buffer.");
 
     m_hOldBitmap = (HBITMAP)SelectObject(m_hBufferDC, m_hBufferBitmap);
+
+    m_device.ClearBuffer();
 }
 
 void Win32Window::ReleaseBuffer()
@@ -177,11 +168,11 @@ void Win32Window::ReleaseBuffer()
     DeleteDC(m_hBufferDC);
     DeleteObject(m_hOldBitmap);
 
-    m_device.frameBuffer = nullptr;
+    m_device.GetFrameBuffer() = nullptr;
 
-    if (m_device.zBuffer)
+    if (m_device.GetZBuffer())
     {
-        delete[] (float*)m_device.zBuffer;
-        m_device.zBuffer = nullptr;
+        delete[] m_device.GetZBuffer();
+        m_device.GetZBuffer() = nullptr;
     }
 }

@@ -35,7 +35,7 @@ namespace ImmGraphics
         static float ASin(float rad) { return asinf(rad); }
         static float ACos(float rad) { return acosf(rad); }
         static float ATan(float rad) { return atanf(rad); }
-        static float ATan(float r1, float r2) { return atan2f(r1, r2); }
+        static float ATan(float y, float x) { return atan2f(y, x); }
 
         static bool Sign(float v) { return std::signbit(v); }
         static float Abs(float v) { return v < 0 ? -v : v; }
@@ -822,8 +822,8 @@ namespace ImmGraphics
             float vb = bp ^ bc;
             float vc = cp ^ ca;
 
-            if ((va >= 0 && vb > 0 && vc > 0) ||
-                (va <= 0 && vb < 0 && vc < 0))
+            if ((va >= 0 && vb >= 0 && vc >= 0) ||
+                (va <= 0 && vb <= 0 && vc <= 0))
                 return true;
             return false;
         }
@@ -890,14 +890,11 @@ namespace ImmGraphics
     };
 
     /**
-     * @brief RGBA Color
+     * @brief Color Utility
      */
     class Color
     {
-    public:
-        float r, g, b, a;
-
-        enum ColorName : unsigned
+        /*enum ColorName : unsigned
         {
             Black = 0x000000,
             Red = 0xFF0000,
@@ -907,44 +904,32 @@ namespace ImmGraphics
             Magenta = 0xFF00FF,
             Cyan = 0x00FFFF,
             White = 0xFFFFFF
-        };
+        };*/
 
     public:
-        Color(): r(0), g(0), b(0), a(1) {}
-        Color(float r, float g, float b, float a = 1)
-            : r(Math::Clamp01(r)), g(Math::Clamp01(g)), b(Math::Clamp01(b)), a(Math::Clamp01(a)) {}
-        Color(unsigned char rb, unsigned char gb, unsigned char bb, unsigned char ab = 255)
+
+        static Vec3 UINT(unsigned rgb)
         {
-            r = rb / 255.0f;
-            g = gb / 255.0f;
-            b = bb / 255.0f;
-            a = ab / 255.0f;
-        }
-        Color(ColorName color, float a = 1): Color((unsigned char)((color >> 16) & 0xFF),
-            (unsigned char)((color >> 8) & 0xFF),
-            (unsigned char)(color & 0xFF))
-        {
-            this->a = a;
-        }
-        /*static Color RGB(unsigned rgb)
-        {
-            return Color(
-                (unsigned char)((rgb >> 16) & 0xFF),
-                (unsigned char)((rgb >> 8) & 0xFF),
-                (unsigned char)(rgb & 0xFF)
+            return Vec3(
+                (unsigned char)((rgb >> 16) & 0xFF) / 255.0f,
+                (unsigned char)((rgb >> 8) & 0xFF) / 255.0f,
+                (unsigned char)(rgb & 0xFF) / 255.0f
             );
-        }*/
-        static Color RGBA(unsigned rgba)
+        }
+        static unsigned RGB(float r, float g, float b)
         {
-            return Color(
-                (unsigned char)((rgba >> 24) & 0xFF),
-                (unsigned char)((rgba >> 16) & 0xFF),
-                (unsigned char)((rgba >> 8) & 0xFF),
-                (unsigned char)(rgba & 0xFF)
-            );
+            unsigned char rb = (unsigned char)(r * 255);
+            unsigned char gb = (unsigned char)(g * 255);
+            unsigned char bb = (unsigned char)(b * 255);
+            return (unsigned)(rb << 16) | (unsigned short)(gb << 8) | bb;
+        }
+        static unsigned RGB(Vec3 color)
+        {
+            return RGB(color.x, color.y, color.z);
         }
 
-        unsigned getRGBValue()
+
+        /*unsigned getRGBValue()
         {
             unsigned char rb = (unsigned char)(r * 255);
             unsigned char gb = (unsigned char)(g * 255);
@@ -1074,7 +1059,7 @@ namespace ImmGraphics
         Color getChannelRB() const { return Color(r, 0, b, a); }
         Color getChannelBG() const { return Color(0, b, g, a); }
 
-        void Inverse() { r = 1 - r; g = 1 - g; b = 1 - b; }
+        void Inverse() { r = 1 - r; g = 1 - g; b = 1 - b; }*/
 
     };
 

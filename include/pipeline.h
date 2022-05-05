@@ -19,20 +19,6 @@ namespace ImmGraphics
         void setRenderTarget(RenderDevice* target) { m_device = target; }
 
     protected:
-        virtual void setBuffer(unsigned x, unsigned y, float z , unsigned value)
-        {
-            if (x < m_device->width && y < m_device->height)
-            {
-                float depth = *((float*)m_device->zBuffer + y * m_device->width + x);
-                if (z < depth || depth == (float)0xFFFFFFFF)
-                {
-                    *((unsigned*)m_device->frameBuffer + y * m_device->width + x) = value;
-                    *((float*)m_device->zBuffer + y * m_device->width + x) = z;
-                }
-            }
-        }
-
-    protected:
         RenderDevice* m_device;
 
     };

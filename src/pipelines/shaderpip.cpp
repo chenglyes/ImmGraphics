@@ -35,8 +35,8 @@ void ShaderPipeline::AddShader(Shader* shader)
 Vec3 ShaderPipeline::BufferToRelativeTView(const Vec3& position)
 {
     Vec3 res;
-    res.x = position.x / m_device->width - 0.5;
-    res.y = 0.5 - position.y / m_device->height;
+    res.x = position.x / m_device->GetWidth() - 0.5;
+    res.y = 0.5 - position.y / m_device->GetHeight();
     res.z = position.z;
     return res;
 }
@@ -44,8 +44,8 @@ Vec3 ShaderPipeline::BufferToRelativeTView(const Vec3& position)
 Vec3 ShaderPipeline::RelativeToBufferView(const Vec3& position)
 {
     Vec3 res;
-    res.x = (position.x + 0.5) * m_device->width;
-    res.y = (0.5 - position.y) * m_device->height;
+    res.x = (position.x + 0.5) * m_device->GetWidth();
+    res.y = (0.5 - position.y) * m_device->GetHeight();
     res.z = position.z;
     return res;
 }
@@ -61,13 +61,16 @@ void ShaderPipeline::RenderPrimitive(const VertexBuffer& vertices, const Vec3& i
         Vec3 b = RelativeToBufferView(shader->VSMain(vertices[index.y], datas[1]));
         Vec3 c = RelativeToBufferView(shader->VSMain(vertices[index.z], datas[2]));
 
+        // clip
+        // if ()
+
         Triangle2D triangle(a, b, c);
 
         // rasterize
         int lx = Math::Min(a.x, b.x, c.x);
-        int rx = Math::Max(a.x, b.x, c.x);
+        int rx = Math::Max(a.x, b.x, c.x) + 1;
         int ty = Math::Min(a.y, b.y, c.y);
-        int by = Math::Max(a.y, b.y, c.y);
+        int by = Math::Max(a.y, b.y, c.y) + 1;
 
 #pragma omp parallel for
         for (int x = lx; x < rx; ++x)
@@ -87,7 +90,8 @@ void ShaderPipeline::RenderPrimitive(const VertexBuffer& vertices, const Vec3& i
                 Vec3 color = shader->PSMain(datas[3]);
 
                 float z = a.z * weight.x + b.z * weight.y + c.z * weight.z;
-                setBuffer(x, y, z, Color(color.x, color.y, color.z).getRGBValue());
+                float dp = m_device->GetZ(x, y);
+                if (z < dp) m_device->SetPixel(x, y, color);
             }
         }
     }
