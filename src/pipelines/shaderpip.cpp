@@ -36,7 +36,7 @@ Vec3 ShaderPipeline::BufferToRelativeTView(const Vec3& position)
 {
     Vec3 res;
     res.x = position.x / m_device->GetWidth() - 0.5;
-    res.y = 0.5 - position.y / m_device->GetHeight();
+    res.y = position.y / m_device->GetHeight() - 0.5;
     res.z = position.z;
     return res;
 }
@@ -44,10 +44,11 @@ Vec3 ShaderPipeline::BufferToRelativeTView(const Vec3& position)
 Vec3 ShaderPipeline::RelativeToBufferView(const Vec3& position)
 {
     Vec3 res;
-    res.x = (position.x + 0.5) * m_device->GetWidth();
-    res.y = (0.5 - position.y) * m_device->GetHeight();
+    res.x = (position.x + 1) * m_device->GetWidth() / 2;
+    res.y = (position.y + 1) * m_device->GetHeight() / 2;
     res.z = position.z;
     return res;
+    //return Matrix4::Viewport(m_device->GetWidth(), m_device->GetHeight()) * Vec4(res, 1);
 }
 
 void ShaderPipeline::RenderPrimitive(const VertexBuffer& vertices, const Vec3& index)
@@ -72,11 +73,18 @@ void ShaderPipeline::RenderPrimitive(const VertexBuffer& vertices, const Vec3& i
         int ty = Math::Min(a.y, b.y, c.y);
         int by = Math::Max(a.y, b.y, c.y) + 1;
 
-#pragma omp parallel for
-        for (int x = lx; x < rx; ++x)
-        {
+        int width = m_device->GetWidth();
+        int height = m_device->GetHeight();
 
-            for (int y = ty; y < by; ++y)
+        if (lx < 0) lx = 0;
+        if (ty < 0) ty = 0;
+        if (rx >= width) rx = width - 1;
+        if (by >= height) by = height - 1;
+
+#pragma omp parallel for
+        for (int x = lx; x <= rx; ++x)
+        {
+            for (int y = ty; y <= by; ++y)
             {
                 // Handle varying datas
                 Vec2 p(x + 0.5, y + 0.5);
@@ -91,7 +99,11 @@ void ShaderPipeline::RenderPrimitive(const VertexBuffer& vertices, const Vec3& i
 
                 float z = a.z * weight.x + b.z * weight.y + c.z * weight.z;
                 float dp = m_device->GetZ(x, y);
-                if (z < dp) m_device->SetPixel(x, y, color);
+                if (z < dp)
+                {
+                    m_device->SetPixel(x, y, color);
+                    m_device->SetZ(x, y, z);
+                }
             }
         }
     }

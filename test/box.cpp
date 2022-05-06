@@ -9,17 +9,12 @@ using namespace ImmGraphics;
 
 void SubmitObjects(Renderer& renderer)
 {
-    //renderer.Sphere(Vec3(0, 0, 0), 1, 30, Vec3(0.28, 0.35, 0.68));
-    //renderer.Plane(Vec3(0, 0.5, 0), Vec3(1, 1, 1), Vec3(1, 0, 0));
-    //renderer.Plane(Vec3(0, -0.5, 0), Vec3(1, 1, 1), Vec3(0, 0, 1));
-    renderer.Box(Vec3(0, 0, 0), Vec3(1, 1, 1), Vec3(0.28, 0.35, 0.68));
+    renderer.Box(Vec3(0, 0, 0), Vec3(1, 1, 1), Vec3(0.3, 0.4, 0.8));
 }
 
-class TestShader : public Shader
+class NormalShader : public Shader
 {
 public:
-    int time = 10;
-
     Vec3 cameraPos = Vec3(0, 0, 3);
     Vec3 lightPos = Vec3(2, 2, 2);
     Vec3 lightColor = Vec3(1, 1, 1);
@@ -29,13 +24,13 @@ public:
     {
         Vec4 pos(now.pos, 1);
 
-        Matrix4 model = Matrix4::RotateByAxis(time * Math::RAD, time * Math::RAD, 0);
-        Matrix4 view = Matrix4::View(cameraPos, Vec3::Zero(), Vec3(0, 1, 0));
+        Matrix4 model = Matrix4::Identity();
+        Matrix4 view = Matrix4::View(cameraPos, Vec3::Zero(), Vec3::Up());
         Matrix4 project = Matrix4::Perspective(1.0f, 100 * Math::RAD, 0.1, 10);
 
-        datas.F3["VertexColor"] = now.color;
+        datas.F3["VectexColor"] = now.color;
         datas.F3["FragPos"] = model * pos;
-        datas.F3["Normal"] = model.getInversed().getTransposed() * Vec4(now.norm);
+        datas.F3["Normal"] = model * Vec4(now.norm, 1);
 
         pos = project * view * model * pos;
         pos = pos / pos.w;
@@ -44,7 +39,7 @@ public:
 
     Vec3 PSMain(VaryingData& datas) override
     {
-        Vec3 vertexColor = datas.F3["VertexColor"];
+        Vec3 vertexColor = datas.F3["VectexColor"];
         Vec3 fragPos = datas.F3["FragPos"];
         Vec3 norm = datas.F3["Normal"].getNormalized();
 
@@ -79,35 +74,23 @@ public:
 
 int main()
 {
-    Window *window = Window::GenerateWindow(606, 629);
-    ShaderPipeline *pipeline = new ShaderPipeline;
+    Window* window = Window::GenerateWindow(606, 629);
+    ShaderPipeline* pipeline = new ShaderPipeline;
+    pipeline->AddShader(new NormalShader);
 
     Renderer renderer(window->getDevice());
     renderer.AddPipeline(pipeline);
 
     window->Show();
 
-    TestShader* shader = new TestShader;
-    pipeline->AddShader(shader);
-
     SubmitObjects(renderer);
-
     renderer.Render();
     window->Draw();
 
     while (!window->ShouldClose())
     {
-        // using namespace std::chrono;
-
-        auto fps = CalculateFPS();
-        DEBUG_Print("FPS: " << fps);
-
-        ++ shader->time;
-        window->getDevice()->ClearBuffer();
-        renderer.Render();
-        window->Draw();
-
-        // std::this_thread::sleep_for(1ms);
+        using namespace std::chrono;
+        std::this_thread::sleep_for(1ms);
     }
 
     Window::DestroyWindow(window);

@@ -10,9 +10,9 @@ using namespace ImmGraphics;
 void SubmitObjects(Renderer& renderer)
 {
     static VertexBuffer vb = {
-        { {0, 0.3, 0}, {1, 0, 0} },
-        { {0.3, -0.3, 0}, {0, 1, 0} },
-        { {-0.3, -0.3, 0}, {0, 0, 1} }
+        { { 0,  1, 0}, {1, 0, 0} },
+        { { 1, -1, 0}, {0, 1, 0} },
+        { {-1, -1, 0}, {0, 0, 1} }
     };
 
     static IndexBuffer ib = {
@@ -27,15 +27,23 @@ class NormalShader : public Shader
 public:
     Vec3 VSMain(const Vertex& now, VaryingData& datas) override
     {
+        Vec4 pos(now.pos, 1);
+
+        Matrix4 model = Matrix4::Identity();
+        Matrix4 view = Matrix4::View(Vec3(0, 0, 3), Vec3::Zero(), Vec3(0, 1, 0));
+        Matrix4 project = Matrix4::Perspective(1.0f, 100 * Math::RAD, 0.1, 10);
+
         datas.F3["VertexColor"] = now.color;
-        return  now.pos;
+
+        pos = project * view * model * pos;
+        pos = pos / pos.w;
+        return  pos;
     }
 
     Vec3 PSMain(VaryingData& datas) override
     {
         return datas.F3["VertexColor"];
     }
-
 };
 
 int main()

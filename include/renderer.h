@@ -17,6 +17,7 @@ namespace ImmGraphics
         void AddPipeline(RenderPipeline* pipeline);
         void Render();
 
+        void Triangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& color);
         void Plane(const Vec3& pos, const Vec2& size, const Vec3& color);
         void Box(const Vec3& pos, const Vec3& size, const Vec3& color);
         void Sphere(const Vec3& pos, float radius, int slices, const Vec3& color);

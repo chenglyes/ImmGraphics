@@ -142,7 +142,7 @@ void Win32Window::CreateBuffer(int width, int height)
     BITMAPINFOHEADER bmphdr = { 0 };
     bmphdr.biSize = sizeof(bmphdr);
     bmphdr.biWidth = width;
-    bmphdr.biHeight = -height;
+    bmphdr.biHeight = height;
     bmphdr.biPlanes = 1;
     bmphdr.biBitCount = 32;
     bmphdr.biSizeImage = width * height * 4;

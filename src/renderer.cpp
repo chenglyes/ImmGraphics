@@ -28,6 +28,25 @@ void Renderer::Render()
     // m_indices.Resize(0);
 }
 
+void Renderer::Triangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& color)
+{
+    Vec3 AC = c - a;
+    Vec3 AB = b - a;
+    Vec3 normal = Vec3::Cross(AC, AB).getNormalized();
+
+    VertexBuffer vertices = {
+        { a, color, normal },
+        { b, color, normal },
+        { c, color, normal },
+    };
+
+    IndexBuffer indices = {
+        0, 1, 2
+    };
+
+    Mesh(vertices, indices);
+}
+
 void Renderer::Plane(const Vec3& pos, const Vec2& size, const Vec3& color)
 {
     float left = pos.x - size.x / 2;
@@ -53,79 +72,123 @@ void Renderer::Plane(const Vec3& pos, const Vec2& size, const Vec3& color)
 
 void Renderer::Box(const Vec3& pos, const Vec3& size, const Vec3& color)
 {
-    float left = pos.x - size.x / 2;
-    float right = pos.x + size.x / 2;
+    //float left = pos.x - size.x / 2;
+    //float right = pos.x + size.x / 2;
 
-    float top = pos.y + size.y / 2;
-    float bottom = pos.y - size.y / 2;
+    //float top = pos.y + size.y / 2;
+    //float bottom = pos.y - size.y / 2;
 
-    float near = pos.z - size.z / 2;
-    float far = pos.z + size.z / 2;
+    //float near = pos.z + size.z / 2;
+    //float far = pos.z - size.z / 2;
+
+    float hx = size.x / 2;
+    float hy = size.y / 2;
+    float hz = size.z / 2;
 
     VertexBuffer vb = {
+
         // Front
-        {{ left,  bottom, near }, color, Vec3::Back() },
-        {{ right, bottom, near }, color, Vec3::Back() },
-        {{ right,  top,   near }, color, Vec3::Back() },
-        {{ right,  top,   near }, color, Vec3::Back() },
-        {{ left,   top,   near }, color, Vec3::Back() },
-        {{ left,  bottom, near }, color, Vec3::Back() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Forward() },
+        { {pos.x + hx, pos.y - hy, pos.z - hz }, color, Vec3::Forward() },
+        { {pos.x + hx, pos.y + hy, pos.z - hz }, color, Vec3::Forward() },
+        { {pos.x + hx, pos.y + hy, pos.z - hz }, color, Vec3::Forward() },
+        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Forward() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Forward() },
 
         // Back
-        {{ left,  bottom, far  }, color, Vec3::Forward() },
-        {{ right, bottom, far  }, color, Vec3::Forward() },
-        {{ right,  top,   far  }, color, Vec3::Forward() },
-        {{ right,  top,   far  }, color, Vec3::Forward() },
-        {{ left,   top,   far  }, color, Vec3::Forward() },
-        {{ left,  bottom, far  }, color, Vec3::Forward() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
 
         // Left
-        {{ left,   top,   far  }, color, Vec3::Left() },
-        {{ left,   top,   near }, color, Vec3::Left() },
-        {{ left,  bottom, near }, color, Vec3::Left() },
-        {{ left,  bottom, near }, color, Vec3::Left() },
-        {{ left,  bottom, far  }, color, Vec3::Left() },
-        {{ left,   top,   far  }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Left() },
 
         // Right
-        {{ right,  top,   far  }, color, Vec3::Right() },
-        {{ right,  top,   near }, color, Vec3::Right() },
-        {{ right, bottom, near }, color, Vec3::Right() },
-        {{ right, bottom, near }, color, Vec3::Right() },
-        {{ right, bottom, far  }, color, Vec3::Right() },
-        {{ right,  top,   far  }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y + hy, pos.z - hz }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y - hy, pos.z - hz }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y - hy, pos.z - hz }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Right() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Right() },
 
         // Bottom
-        {{ left,  bottom, near }, color, Vec3::Down() },
-        {{ right, bottom, near }, color, Vec3::Down() },
-        {{ right, bottom, far  }, color, Vec3::Down() },
-        {{ right, bottom, far  }, color, Vec3::Down() },
-        {{ left,  bottom, far  }, color, Vec3::Down() },
-        {{ left,  bottom, near }, color, Vec3::Down() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
+        { {pos.x + hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
 
         // Top
-        {{ left,   top,   near }, color, Vec3::Up() },
-        {{ right,  top,   near }, color, Vec3::Up() },
-        {{ right,  top,   far  }, color, Vec3::Up() },
-        {{ right,  top,   far  }, color, Vec3::Up() },
-        {{ left,   top,   far  }, color, Vec3::Up() },
-        {{ left,   top,   near }, color, Vec3::Up() }
+        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() },
+        { {pos.x + hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
+        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
+        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() }
+
     };
 
-    IndexBuffer ib = {
-        0, 1, 2,
-        3, 4, 5,
-        6, 7, 8,
-        9, 10, 11,
-        12, 13, 14,
-        15, 16, 17,
-        18, 19, 20,
-        21, 22, 23,
-        24, 25, 26,
-        27, 28, 29,
-        30, 31, 32,
-        33, 34, 35
-    };
+    //VertexBuffer vb = {
+    //    // Front
+    //    { { left,  bottom, near }, color, Vec3::Forward() },
+    //    { { right, bottom, near }, color, Vec3::Forward() },
+    //    { { right,  top,   near }, color, Vec3::Forward() },
+    //    { { right,  top,   near }, color, Vec3::Forward() },
+    //    { { left,   top,   near }, color, Vec3::Forward() },
+    //    { { left,  bottom, near }, color, Vec3::Forward() },
+
+    //    // Back
+    //    { { left,  bottom, far  }, color, Vec3::Back() },
+    //    { { right, bottom, far  }, color, Vec3::Back() },
+    //    { { right,  top,   far  }, color, Vec3::Back() },
+    //    { { right,  top,   far  }, color, Vec3::Back() },
+    //    { { left,   top,   far  }, color, Vec3::Back() },
+    //    { { left,  bottom, far  }, color, Vec3::Back() },
+
+    //    // Left
+    //    { { left,   top,   far  }, color, Vec3::Left() },
+    //    { { left,   top,   near }, color, Vec3::Left() },
+    //    { { left,  bottom, near }, color, Vec3::Left() },
+    //    { { left,  bottom, near }, color, Vec3::Left() },
+    //    { { left,  bottom, far  }, color, Vec3::Left() },
+    //    { { left,   top,   far  }, color, Vec3::Left() },
+
+    //    // Right
+    //    { { right,  top,   far  }, color, Vec3::Right() },
+    //    { { right,  top,   near }, color, Vec3::Right() },
+    //    { { right, bottom, near }, color, Vec3::Right() },
+    //    { { right, bottom, near }, color, Vec3::Right() },
+    //    { { right, bottom, far  }, color, Vec3::Right() },
+    //    { { right,  top,   far  }, color, Vec3::Right() },
+
+    //    // Bottom
+    //    { { left,  bottom, near }, color, Vec3::Down() },
+    //    { { right, bottom, near }, color, Vec3::Down() },
+    //    { { right, bottom, far  }, color, Vec3::Down() },
+    //    { { right, bottom, far  }, color, Vec3::Down() },
+    //    { { left,  bottom, far  }, color, Vec3::Down() },
+    //    { { left,  bottom, near }, color, Vec3::Down() },
+
+    //    // Top
+    //    { { left,   top,   near }, color, Vec3::Up() },
+    //    { { right,  top,   near }, color, Vec3::Up() },
+    //    { { right,  top,   far  }, color, Vec3::Up() },
+    //    { { right,  top,   far  }, color, Vec3::Up() },
+    //    { { left,   top,   far  }, color, Vec3::Up() },
+    //    { { left,   top,   near }, color, Vec3::Up() }
+    //};
+
+    IndexBuffer ib;
+    for (int i = 0; i < 36; ++i) ib.PushBack(i);
 
     Mesh(vb, ib);
 }

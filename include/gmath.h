@@ -145,8 +145,8 @@ namespace ImmGraphics
         static Vec3 Identity() { return Vec3(1, 1, 1); }
         static Vec3 Left() { return Vec3(-1, 0, 0); }
         static Vec3 Right() { return Vec3(1, 0, 0); }
-        static Vec3 Forward() { return Vec3(0, 0, 1); }
-        static Vec3 Back() { return Vec3(0, 0, -1); }
+        static Vec3 Forward() { return Vec3(0, 0, -1); }
+        static Vec3 Back() { return Vec3(0, 0, 1); }
         static Vec3 Up() { return Vec3(0, 1, 0); }
         static Vec3 Down() { return Vec3(0, -1, 0); }
         static Vec3 PositiveInfinity() 
@@ -710,47 +710,52 @@ namespace ImmGraphics
         static Matrix4 RotateByAxis(const Vec3& rotation) { return RotateByAxis(rotation.x, rotation.y, rotation.z); }
         static Matrix4 RotateByAxis(float x, float y, float z)
             { return RotateByXAxis(x) * RotateByYAxis(y) * RotateByZAxis(z); }
-        static Matrix4 Orthogonal(const Vec3& vec)
+        static Matrix4 Orthogonal(float near, float far, float width, float height)
         {
-            // TODO: Orthogonal Matrix4
-            return Identity();
+            float r = width / 2;
+            float t = height / 2;
+            return Matrix4(
+                1 / r, 0, 0, 0,
+                0, 1 / t, 0, 0,
+                0, 0, 2 / (near - far), (near + far) / (near - far),
+                0, 0, 0, 1
+            );
         }
         static Matrix4 Perspective(float aspect, float fov, float near, float far)
         {
-            float f = Math::Tan(Math::PI * 0.5f - 0.5 * fov);
-            float rangeInv = 1.0 / (near - far);
+            float cot = 1 / Math::Tan(0.5 * fov);
             return Matrix4(
-                f / aspect, 0.0f, 0.0f, 0.0f, 
-                0.0f, f, 0.0f, 0.0f,
-                0.0f, 0.0f, (near + far) * rangeInv, 1.0f, 
-                0.0f, 0.0f, near * far * rangeInv * 2.0f, 0.0f
+                cot / aspect, 0.0f, 0.0f, 0.0f, 
+                0.0f, cot, 0.0f, 0.0f,
+                0.0f, 0.0f, (near + far) / (near - far), 2 * near * far / (near - far),
+                0.0f, 0.0f, -1.0f, 0.0f
             );
         }
-        static Matrix4 View(const Vec3& pos, const Vec3& target, const Vec3& viewUp)
+        static Matrix4 View(const Vec3& pos, const Vec3& target, const Vec3& up)
         {
-            Vec3 forward = (target - pos).getNormalized();
-            Vec3 up = viewUp.getNormalized();
-            Vec3 right = up.getNormalized() ^ forward;
+            Vec3 t = up.getNormalized();
+            Vec3 g = (target - pos).getNormalized();
+            Vec3 r = Vec3::Cross(g, t);
             
-            Matrix4 rotateMat(
-                right.x, right.y, right.z, 
-                0.0f, up.x, up.y, up.z, 0.0f,
-                forward.x, forward.y, forward.z, 0.0f, 
+            Matrix4 rotate(
+                r.x, r.y, r.z, 0.0f,
+                t.x, t.y, t.z, 0.0f,
+                -g.x, -g.y, -g.z, 0.0f,
                 0.0f, 0.0f, 0.0f, 1.0f);
 
-            Matrix4 translateMat(
+            Matrix4 translate(
                 1.0f, 0.0f, 0.0f, -pos.x, 
                 0.0f, 1.0f, 0.0f, -pos.y,
                 0.0f, 0.0f, 1.0f, -pos.z, 
                 0.0f, 0.0f, 0.0f, 1.0f);
 
-            return rotateMat * translateMat;
+            return rotate * translate;
         }
-        static Matrix4 Viewport(float width, float height)
+        static Matrix4 Viewport(float sx, float sy, float width, float height)
         {
             return Matrix4(
                 width / 2, 0, 0, width / 2,
-                0, -height / 2, 0, height / 2,
+                0, height / 2, 0, height / 2,
                 0, 0, 1, 0,
                 0, 0, 0, 1
             );
@@ -809,14 +814,14 @@ namespace ImmGraphics
             return 0.5f * Math::Abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
         }
 
-        bool Contain(const Vec2& position) const
+        bool Contain(const Vec2& p) const
         {
             Vec2 ab = b - a;
             Vec2 bc = c - b;
             Vec2 ca = a - c;
-            Vec2 ap = position - a;
-            Vec2 bp = position - b;
-            Vec2 cp = position - c;
+            Vec2 ap = p - a;
+            Vec2 bp = p - b;
+            Vec2 cp = p - c;
 
             float va = ap ^ ab;
             float vb = bp ^ bc;
@@ -826,6 +831,16 @@ namespace ImmGraphics
                 (va <= 0 && vb <= 0 && vc <= 0))
                 return true;
             return false;
+
+            /*Vec3 weight;
+
+            weight.x = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
+            weight.y = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) /
+                ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
+            weight.z = 1 - weight.x - weight.y;
+
+            return weight.x >= 0 && weight.y >= 0 && weight.z >= 0;*/
         }
 
         Vec3 Interpolation(const Vec2& p) const

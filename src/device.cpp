@@ -21,19 +21,19 @@ void MemoryDevice::ClearBuffer()
 	memset(m_frameBuffer, 0, m_width * m_height * sizeof(unsigned));
 
 	for (int i = 0; i < m_width * m_height; i++)
-		m_zBuffer[i] = 100.0f;
+		m_zBuffer[i] = 1.0f;
 }
 
 void MemoryDevice::SetPixel(int x, int y, const Vec3& color)
 {
 	assert(m_frameBuffer);
-	((unsigned*)m_frameBuffer)[y * m_width + x] = Color::RGB(color);
+	m_frameBuffer[y * m_width + x] = Color::RGB(color);
 }
 
 Vec3 MemoryDevice::GetPixel(int x, int y)
 {
 	assert(m_frameBuffer);
-	return Color::UINT(((unsigned*)m_frameBuffer)[y * m_width + x]);
+	return Color::UINT(m_frameBuffer[y * m_width + x]);
 }
 
 void MemoryDevice::SetZ(int x, int y, float z)
