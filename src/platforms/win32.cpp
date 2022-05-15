@@ -111,7 +111,7 @@ void Win32Window::Create(int width, int height, DWORD style)
     sx = GetSystemMetrics(SM_CXSCREEN);
     sy = GetSystemMetrics(SM_CYSCREEN);
 
-    x = (sx - width) / 2;
+    x = (sx - width) / 2 - width / 1.5f;
     y = (sy - height) / 2;
 
     m_hWnd = CreateWindowEx(

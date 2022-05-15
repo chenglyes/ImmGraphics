@@ -1,5 +1,6 @@
 #include "immgraphics.h"
 #include "pipelines/shaderpip.h"
+#include "debug.h"
 
 #include <cstdlib>
 #include <chrono>
@@ -10,9 +11,9 @@ using namespace ImmGraphics;
 void SubmitObjects(Renderer& renderer)
 {
     static VertexBuffer vb = {
-        { { 0,  1, 0}, {1, 0, 0} },
-        { { 1, -1, 0}, {0, 1, 0} },
-        { {-1, -1, 0}, {0, 0, 1} }
+        { { 0,  0.6, 0}, {1, 0, 0} },
+        { { 0.6, -0.6, -0.3}, {0, 1, 0} },
+        { {-0.6, -0.6, 0.3}, {0, 0, 1} },
     };
 
     static IndexBuffer ib = {
@@ -22,22 +23,13 @@ void SubmitObjects(Renderer& renderer)
     renderer.Mesh(vb, ib);
 }
 
-class NormalShader : public Shader
+class PhongShader : public Shader
 {
 public:
     Vec3 VSMain(const Vertex& now, VaryingData& datas) override
     {
-        Vec4 pos(now.pos, 1);
-
-        Matrix4 model = Matrix4::Identity();
-        Matrix4 view = Matrix4::View(Vec3(0, 0, 3), Vec3::Zero(), Vec3(0, 1, 0));
-        Matrix4 project = Matrix4::Perspective(1.0f, 100 * Math::RAD, 0.1, 10);
-
         datas.F3["VertexColor"] = now.color;
-
-        pos = project * view * model * pos;
-        pos = pos / pos.w;
-        return  pos;
+        return now.pos;
     }
 
     Vec3 PSMain(VaryingData& datas) override
@@ -46,27 +38,42 @@ public:
     }
 };
 
+void RenderProc(Renderer* renderer, RenderDevice* device, ShaderPipeline* pipeline)
+{
+
+    //BEGIN_TIMER(First Render)
+    //    renderer->Render(device, pipeline);
+    //END_TIMER()
+
+    device->ClearBuffer();
+    pipeline->SetFastSampled(true);
+
+    BEGIN_TIMER(Render with Fast-Sample 0)
+        renderer->Render(device, pipeline);
+    END_TIMER()
+}
+
 int main()
 {
-    Window* window = Window::GenerateWindow(606, 629);
-    ShaderPipeline* pipeline = new ShaderPipeline;
-    pipeline->AddShader(new NormalShader);
+    Renderer renderer;
 
-    Renderer renderer(window->getDevice());
-    renderer.AddPipeline(pipeline);
+    Window* window = Window::GenerateWindow(606, 629);
+    std::shared_ptr<ShaderPipeline> pipeline(new ShaderPipeline);
+    std::shared_ptr<PhongShader> phongShader(new PhongShader);
+
+    pipeline->SetShader(phongShader.get());
 
     window->Show();
 
     SubmitObjects(renderer);
-    renderer.Render();
-    window->Draw();
+    std::thread renderThread(RenderProc, &renderer, window->getDevice(), pipeline.get());
 
     while (!window->ShouldClose())
     {
-        using namespace std::chrono;
-        std::this_thread::sleep_for(1ms);
+        window->Draw();
     }
 
+    renderThread.join();
     Window::DestroyWindow(window);
     return 0;
 }

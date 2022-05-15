@@ -12,7 +12,7 @@ void SubmitObjects(Renderer& renderer)
     //renderer.Sphere(Vec3(0, 0, 0), 1, 30, Vec3(0.28, 0.35, 0.68));
     //renderer.Plane(Vec3(0, 0.5, 0), Vec3(1, 1, 1), Vec3(1, 0, 0));
     //renderer.Plane(Vec3(0, -0.5, 0), Vec3(1, 1, 1), Vec3(0, 0, 1));
-    renderer.Box(Vec3(0, 0, 0), Vec3(1, 1, 1), Vec3(0.28, 0.35, 0.68));
+    renderer.Box(Vec3(0, 0, 0), Vec3(1, 1, 1), Vec3(1, 0.5, 0.31));
 }
 
 class TestShader : public Shader
@@ -20,8 +20,8 @@ class TestShader : public Shader
 public:
     int time = 10;
 
-    Vec3 cameraPos = Vec3(0, 0, 3);
-    Vec3 lightPos = Vec3(2, 2, 2);
+    Vec3 cameraPos = Vec3(0, 3, 3);
+    Vec3 lightPos = Vec3(0, 4.0, -3.0);
     Vec3 lightColor = Vec3(1, 1, 1);
 
 public:
@@ -29,13 +29,14 @@ public:
     {
         Vec4 pos(now.pos, 1);
 
-        Matrix4 model = Matrix4::RotateByAxis(time * Math::RAD, time * Math::RAD, 0);
-        Matrix4 view = Matrix4::View(cameraPos, Vec3::Zero(), Vec3(0, 1, 0));
-        Matrix4 project = Matrix4::Perspective(1.0f, 100 * Math::RAD, 0.1, 10);
+        //Matrix4 model = Matrix4::RotateByAxis(time * Math::RAD, 65 * Math::RAD, 0);
+        Matrix4 model = Matrix4::RotateByXAxis(time * Math::RAD);
+        Matrix4 view = Matrix4::View(cameraPos, Vec3::Zero(), Vec3(0, cameraPos.z / cameraPos.Length(), -cameraPos.y / cameraPos.Length()));
+        Matrix4 project = Matrix4::Perspective(1.0f, 80 * Math::RAD, 0.1, 100);
 
         datas.F3["VertexColor"] = now.color;
         datas.F3["FragPos"] = model * pos;
-        datas.F3["Normal"] = model.getInversed().getTransposed() * Vec4(now.norm);
+        datas.F3["Normal"] = model.getInversed().getTransposed().getMat3() * now.norm;
 
         pos = project * view * model * pos;
         pos = pos / pos.w;
@@ -53,26 +54,21 @@ public:
         Vec3 reflectDir = (-lightDir).getReflected(norm);
 
         // ambient
-        float ambientStrength = 0.2f;
+        float ambientStrength = 0.1f;
         Vec3 ambient = lightColor * ambientStrength;
 
         // diffuse
-        float diff = Math::Max(norm * lightDir, 0);
-        Vec3 diffuse = lightColor * diff;
+        float diff = Math::Max(Vec3::Dot(norm, lightDir), 0);
+        Vec3 diffuse = lightColor * diff * 0.8;
 
         // specular
-        float specularStrength = 0.65f;
-        float spec = Math::Pow(Math::Max(viewDir * reflectDir, 0), 64);
+        float specularStrength = 0.8;
+        float spec = Math::Pow(Math::Max(Vec3::Dot(viewDir, reflectDir), 0), 256);
         Vec3 specular = lightColor * spec * specularStrength;
 
         Vec3 effect = ambient + diffuse + specular;
-
-        Vec3 fragColor;
-        fragColor.x = vertexColor.x * effect.x;
-        fragColor.y = vertexColor.y * effect.y;
-        fragColor.z = vertexColor.z * effect.z;
-
-        return fragColor;
+        effect.Clamp01();
+        return effect * vertexColor;
     }
 
 };
@@ -87,8 +83,8 @@ int main()
 
     window->Show();
 
-    TestShader* shader = new TestShader;
-    pipeline->AddShader(shader);
+    TestShader* phongShader = new TestShader;
+    pipeline->SetShader(phongShader);
 
     SubmitObjects(renderer);
 
@@ -102,7 +98,7 @@ int main()
         auto fps = CalculateFPS();
         DEBUG_Print("FPS: " << fps);
 
-        ++ shader->time;
+        ++ phongShader->time;
         window->getDevice()->ClearBuffer();
         renderer.Render();
         window->Draw();

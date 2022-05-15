@@ -5,5 +5,6 @@
 #include "renderer.h"
 #include "window.h"
 #include "debug.h"
+#include "camera.h"
 
 #endif // !__IMMGRAPHICS_HEADER__

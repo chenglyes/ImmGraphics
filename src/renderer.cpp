@@ -2,30 +2,30 @@
 
 using namespace ImmGraphics;
 
-Renderer::Renderer(RenderDevice* target)
+Renderer::Renderer()
 {
-    _DB_ASSERT(target && "No avaliable render target.");
-    m_target = target;
+    
+    
 }
 
 Renderer::~Renderer()
 {
-    for (auto p : m_pipelines) delete p;
+    
 }
 
-void Renderer::AddPipeline(RenderPipeline* pipeline)
+void Renderer::Render(RenderDevice* target, RenderPipeline* pipeline)
 {
+    _DB_ASSERT(target && "No avaliable render target.");
     _DB_ASSERT(pipeline && "Invalid render pipeline.");
-    m_pipelines.PushBack(pipeline);
-    pipeline->setRenderTarget(m_target);
+
+    pipeline->setRenderTarget(target);
+    pipeline->StartPipeline(m_vertices, m_indices);
 }
 
-void Renderer::Render()
+void Renderer::Clear()
 {
-    for (auto p : m_pipelines)
-        p->StartPipeline(m_vertices, m_indices);
-    // m_vertices.Resize(0);
-    // m_indices.Resize(0);
+    m_vertices.Clear();
+    m_indices.Clear();
 }
 
 void Renderer::Triangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& color)
@@ -52,8 +52,8 @@ void Renderer::Plane(const Vec3& pos, const Vec2& size, const Vec3& color)
     float left = pos.x - size.x / 2;
     float right = pos.x + size.x / 2;
 
-    float near = pos.z - size.y / 2;
-    float far = pos.z + size.y / 2;
+    float near = pos.z + size.y / 2;
+    float far = pos.z - size.y / 2;
 
     VertexBuffer vertices = {
         { {left,  pos.y, near }, color, Vec3::Up() },
@@ -72,15 +72,6 @@ void Renderer::Plane(const Vec3& pos, const Vec2& size, const Vec3& color)
 
 void Renderer::Box(const Vec3& pos, const Vec3& size, const Vec3& color)
 {
-    //float left = pos.x - size.x / 2;
-    //float right = pos.x + size.x / 2;
-
-    //float top = pos.y + size.y / 2;
-    //float bottom = pos.y - size.y / 2;
-
-    //float near = pos.z + size.z / 2;
-    //float far = pos.z - size.z / 2;
-
     float hx = size.x / 2;
     float hy = size.y / 2;
     float hz = size.z / 2;
@@ -97,19 +88,19 @@ void Renderer::Box(const Vec3& pos, const Vec3& size, const Vec3& color)
 
         // Back
         { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
         { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
-        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
-        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
-        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
         { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Back() },
-
+        { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
+        { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Back() },
+        
         // Left
         { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
         { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Left() },
-        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
-        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
-        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Left() },
         { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Left() },
+        { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Left() },
 
         // Right
         { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Right() },
@@ -121,71 +112,22 @@ void Renderer::Box(const Vec3& pos, const Vec3& size, const Vec3& color)
 
         // Bottom
         { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
         { {pos.x + hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
-        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
-        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
-        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
         { {pos.x - hx, pos.y - hy, pos.z - hz }, color, Vec3::Down() },
+        { {pos.x - hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
+        { {pos.x + hx, pos.y - hy, pos.z + hz }, color, Vec3::Down() },
+        
 
         // Top
         { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() },
         { {pos.x + hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() },
         { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
+        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() },
         { {pos.x + hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
         { {pos.x - hx, pos.y + hy, pos.z + hz }, color, Vec3::Up() },
-        { {pos.x - hx, pos.y + hy, pos.z - hz }, color, Vec3::Up() }
 
     };
-
-    //VertexBuffer vb = {
-    //    // Front
-    //    { { left,  bottom, near }, color, Vec3::Forward() },
-    //    { { right, bottom, near }, color, Vec3::Forward() },
-    //    { { right,  top,   near }, color, Vec3::Forward() },
-    //    { { right,  top,   near }, color, Vec3::Forward() },
-    //    { { left,   top,   near }, color, Vec3::Forward() },
-    //    { { left,  bottom, near }, color, Vec3::Forward() },
-
-    //    // Back
-    //    { { left,  bottom, far  }, color, Vec3::Back() },
-    //    { { right, bottom, far  }, color, Vec3::Back() },
-    //    { { right,  top,   far  }, color, Vec3::Back() },
-    //    { { right,  top,   far  }, color, Vec3::Back() },
-    //    { { left,   top,   far  }, color, Vec3::Back() },
-    //    { { left,  bottom, far  }, color, Vec3::Back() },
-
-    //    // Left
-    //    { { left,   top,   far  }, color, Vec3::Left() },
-    //    { { left,   top,   near }, color, Vec3::Left() },
-    //    { { left,  bottom, near }, color, Vec3::Left() },
-    //    { { left,  bottom, near }, color, Vec3::Left() },
-    //    { { left,  bottom, far  }, color, Vec3::Left() },
-    //    { { left,   top,   far  }, color, Vec3::Left() },
-
-    //    // Right
-    //    { { right,  top,   far  }, color, Vec3::Right() },
-    //    { { right,  top,   near }, color, Vec3::Right() },
-    //    { { right, bottom, near }, color, Vec3::Right() },
-    //    { { right, bottom, near }, color, Vec3::Right() },
-    //    { { right, bottom, far  }, color, Vec3::Right() },
-    //    { { right,  top,   far  }, color, Vec3::Right() },
-
-    //    // Bottom
-    //    { { left,  bottom, near }, color, Vec3::Down() },
-    //    { { right, bottom, near }, color, Vec3::Down() },
-    //    { { right, bottom, far  }, color, Vec3::Down() },
-    //    { { right, bottom, far  }, color, Vec3::Down() },
-    //    { { left,  bottom, far  }, color, Vec3::Down() },
-    //    { { left,  bottom, near }, color, Vec3::Down() },
-
-    //    // Top
-    //    { { left,   top,   near }, color, Vec3::Up() },
-    //    { { right,  top,   near }, color, Vec3::Up() },
-    //    { { right,  top,   far  }, color, Vec3::Up() },
-    //    { { right,  top,   far  }, color, Vec3::Up() },
-    //    { { left,   top,   far  }, color, Vec3::Up() },
-    //    { { left,   top,   near }, color, Vec3::Up() }
-    //};
 
     IndexBuffer ib;
     for (int i = 0; i < 36; ++i) ib.PushBack(i);
@@ -195,66 +137,118 @@ void Renderer::Box(const Vec3& pos, const Vec3& size, const Vec3& color)
 
 void Renderer::Sphere(const Vec3& pos, float radius, int slices, const Vec3& color)
 {
-    if (slices < 0) return;
-    if ((slices & 1) == 1) ++slices;
+    VertexBuffer vb;
+    IndexBuffer ib;
 
-    float delta = 2 * Math::PI / slices;
+    int stacks = slices;
+
     Vertex v;
-    float deltaU = 1.0f / slices;
-    float deltaV = deltaU * 2;
-    int layerNum = slices / 2 + 1;
-    int perLayerNum = slices + 1;
-
-    VertexBuffer vb(layerNum * perLayerNum);
-
     v.color = color;
+    
+    // add top vertex
+    v.pos = Vec3(0, 0.5, 0);
+    v.norm = Vec3::Up();
+    int id_top = vb.getSize();
+    vb.PushBack(v);
 
-    // 层数
-    for (int i = 0; i < layerNum; i++) {
-        // 每层的高度(即pointY)，为负数让其从下向上创建
-        v.pos.y = -radius * Math::Cos(delta * i);
-
-        // 每层的半径
-        float layerRadius = radius * sin(delta * i);
-        // 每层圆的点,
-        for (int j = 0; j < perLayerNum; j++) {
-            // 计算
-            v.pos.x = layerRadius * Math::Cos(delta * j);
-            v.pos.z = layerRadius * Math::Sin(delta * j);
-            v.uv.x = deltaU * j;
-            v.uv.y = deltaV * i;
-
+    // generate vertices per stack / slice
+    for (int i = 0; i < stacks - 1; i++)
+    {
+        auto phi = Math::PI * float(i + 1) / float(stacks);
+        for (int j = 0; j < slices; j++)
+        {
+            float theta = 2 * Math::PI * float(j) / float(slices);
+            float x = std::sin(phi) * std::cos(theta) / 2;
+            float y = std::cos(phi) / 2;
+            float z = std::sin(phi) * std::sin(theta) / 2;
+            v.pos = Vec3(x, y, z);
             v.norm = v.pos.getNormalized();
-            v.pos = v.pos + pos;
-
-            vb[i * perLayerNum + j] = v;
+            vb.PushBack(v);
         }
     }
 
-    IndexBuffer ib((slices + 1) * (slices + 1));
-    layerNum = slices / 2 + 1;
-    perLayerNum = slices + 1;
+    // add bottom vertex
+    v.pos = Vec3(0, -0.5, 0);
+    v.norm = Vec3::Down();
+    float id_bottom = vb.getSize();
+    vb.PushBack(v);
 
-    for (int i = 0; i < layerNum; i++) {
+    // add top / bottom triangles
+    for (int i = 0; i < slices; ++i)
+    {
+        int i0 = i + 1;
+        int i1 = (i + 1) % slices + 1;
+        ib.PushBack(id_top);
+        ib.PushBack(i0);
+        ib.PushBack(i1);
 
-        if (i + 1 < layerNum) {
+        i0 = i + slices * (stacks - 2) + 1;
+        i1 = (i + 1) % slices + slices * (stacks - 2) + 1;
+        ib.PushBack(id_bottom);
+        ib.PushBack(i1);
+        ib.PushBack(i0);
+    }
 
-            for (int j = 0; j < perLayerNum; j++) {
+    // add quads per stack / slice
+    for (int j = 0; j < stacks - 2; j++)
+    {
+        int j0 = j * slices + 1;
+        int j1 = (j + 1) * slices + 1;
+        for (int i = 0; i < slices; i++)
+        {
+            auto i0 = j0 + i;
+            auto i1 = j0 + (i + 1) % slices;
+            auto i2 = j1 + (i + 1) % slices;
+            auto i3 = j1 + i;
 
-                // i * perLayerNum * 2每层的下标是原来的2倍
-                ib[(i * perLayerNum * 2) + (j * 2)] = i * perLayerNum + j;
-                // 后一层数据
-                ib[(i * perLayerNum * 2) + (j * 2 + 1)] = (i + 1) * perLayerNum + j;
-            }
-        }
-        else {
+            ib.PushBack(i0);
+            ib.PushBack(i3);
+            ib.PushBack(i2);
 
-            for (int j = 0; j < perLayerNum; j++) {
-                // 后最一层数据单独处理
-                ib[i * perLayerNum * 2 + j] = i * perLayerNum + j;
-            }
+            ib.PushBack(i0);
+            ib.PushBack(i2);
+            ib.PushBack(i1);
         }
     }
+
+    Mesh(vb, ib);
+}
+
+void Renderer::Tetrahedron(const Vec3& color)
+{
+    constexpr float sqr3 = 1.73205f;
+    constexpr float sqr3d3 = sqr3 / 3;
+    constexpr float sqr3d6 = sqr3 / 6;
+
+    Vec3 v0(0, 0, sqr3d3);
+    Vec3 v1(0.5, 0, -sqr3d6);
+    Vec3 v2(-0.5, 0, -sqr3d6);
+    Vec3 v3(0, 2.0f / 3.0f, 0);
+
+    Vec3 n0 = Vec3::Down();
+    Vec3 n1 = Vec3::Cross(v3 - v0, v2 - v0).getNormalized();
+    Vec3 n2 = Vec3::Cross(v1 - v0, v3 - v0).getNormalized();
+    Vec3 n3 = Vec3::Cross(v2 - v1, v3 - v1).getNormalized();
+
+    VertexBuffer vb = {
+        { v0, color, n0 },
+        { v1, color, n0 },
+        { v2, color, n0 },
+
+        { v0, color, n1 },
+        { v2, color, n1 },
+        { v3, color, n1 },
+
+        { v0, color, n2 },
+        { v3, color, n2 },
+        { v1, color, n2 },
+
+        { v1, color, n3 },
+        { v3, color, n3 },
+        { v2, color, n3 }
+    };
+
+    IndexBuffer ib = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
     Mesh(vb, ib);
 }

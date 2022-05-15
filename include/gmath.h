@@ -97,8 +97,7 @@ namespace ImmGraphics
         friend Vec2 operator*(float k, const Vec2& vec) { return vec * k; }
         Vec2 operator/(float k) const { return Vec2(x / k, y / k); }
 
-        float operator*(const Vec2& vec) const { return Dot(*this, vec); }
-        float operator^(const Vec2& vec) const { return Cross(*this, vec); }
+        Vec2 operator*(const Vec2& vec) const { return Vec2(x * vec.x, y * vec.y); }
 
         void operator+=(const Vec2& obj) { x += obj.x; y += obj.y; }
         void operator-=(const Vec2& obj) { x -= obj.x; y -= obj.y; }
@@ -111,6 +110,7 @@ namespace ImmGraphics
         float LengthSqr() const { return x * x + y * y; }
         float Length() const { return Math::Sqrt(x * x + y * y); }
 
+        void Clamp01() { x = Math::Clamp01(x); y = Math::Clamp01(y); }
         void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; } }
         Vec2 getNormalized() const { Vec2 res(*this); res.Normalize(); return res; }
         void Reflect(const Vec2& normal) { float temp = 2 * Dot(*this, normal); operator-=(normal * temp); }
@@ -170,8 +170,7 @@ namespace ImmGraphics
         friend Vec3 operator*(float k, const Vec3& vec) { return vec * k; }
         Vec3 operator/(float k) const { return Vec3(x / k, y / k, z / k); }
 
-        float operator*(const Vec3& vec) const { return Dot(*this, vec); }
-        Vec3 operator^(const Vec3& vec) const { return Cross(*this, vec); }
+        Vec3 operator*(const Vec3& vec) const { return Vec3(x * vec.x, y * vec.y, z * vec.z); }
 
         void operator+=(const Vec3& obj) { x += obj.x; y += obj.y; z += obj.z; }
         void operator-=(const Vec3& obj) { x -= obj.x; y -= obj.y; z -= obj.z; }
@@ -182,16 +181,18 @@ namespace ImmGraphics
         bool operator!=(const Vec3& obj) const { return !Math::Near(x, obj.x) || !Math::Near(y, obj.y) || !Math::Near(z, obj.z); }
 
         operator Vec2() { return Vec2(x, y); }
+        Vec2 xy() { return Vec2(x, y); }
 
         float LengthSqr() const { return x * x + y * y + z * z; }
         float Length() const { return Math::Sqrt(x * x + y * y + z * z); }
 
+        void Clamp01() { x = Math::Clamp01(x); y = Math::Clamp01(y); z = Math::Clamp01(z);}
         void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; z /= len; } }
         Vec3 getNormalized() const { Vec3 res(*this); res.Normalize(); return res; }
         void Reflect(const Vec3& normal) { float temp = 2 * Dot(*this, normal); operator-=(normal * temp); }
         Vec3 getReflected(const Vec3& normal) { Vec3 res(*this); res.Reflect(normal); return res; }
 
-        static float Distance(const Vec3& pointA, const Vec3& pointB) { return Vec3(pointB - pointA).Length(); }
+        static float Distance(const Vec3& pointA, const Vec3& pointB) { return (pointB - pointA).Length(); }
         static Vec3 Lerp(const Vec3& start, const Vec3& end, float k) { return start + (end - start) * k; }
         static float Dot(const Vec3& a, const Vec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
         static Vec3 Cross(const Vec3& a, const Vec3& b) 
@@ -241,7 +242,7 @@ namespace ImmGraphics
         friend Vec4 operator*(float k, const Vec4& vec) { return vec * k; }
         Vec4 operator/(float k) const { return Vec4(x / k, y / k, z / k, w / k); }
 
-        float operator*(const Vec4& vec) const { return Dot(*this, vec); }
+        Vec4 operator*(const Vec4& vec) const { return Vec4(x * vec.x, y * vec.y, z * vec.z, w * vec.w); }
 
         void operator+=(const Vec4& obj) { x += obj.x; y += obj.y; z += obj.z; w += obj.w; }
         void operator-=(const Vec4& obj) { x -= obj.x; y -= obj.y; z -= obj.z; w -= obj.w; }
@@ -254,10 +255,12 @@ namespace ImmGraphics
             { return !Math::Near(x, obj.x) || !Math::Near(y, obj.y) || !Math::Near(z, obj.z) || !Math::Near(w, obj.w); }
 
         operator Vec3() { return Vec3(x, y, z); }
+        Vec3 xyz() { return Vec3(x, y, z); }
 
         float LengthSqr() const { return x * x + y * y + z * z + w * w; }
         float Length() const { return Math::Sqrt(x * x + y * y + z * z + w * w); }
 
+        void Clamp01() { x = Math::Clamp01(x); y = Math::Clamp01(y); z = Math::Clamp01(z); w = Math::Clamp01(w); }
         void Normalize() { float len = Length(); if (!Math::NearZero(len)) { x /= len; y /= len; z /= len; w /= len; } }
         Vec4 getNormalized() const { Vec4 res(*this); res.Normalize(); return res; }
 
@@ -598,6 +601,15 @@ namespace ImmGraphics
         Vec4 getColumn(unsigned i) const 
             { _DB_ASSERT(i < 4 && "The index is out of bounds."); return Vec4(value[0][i], value[1][i], value[2][i], value[3][i]); }
 
+        Matrix3 getMat3() const
+        {
+            return Matrix3(
+                value[0][0], value[0][1], value[0][2],
+                value[1][0], value[1][1], value[1][2],
+                value[2][0], value[2][1], value[2][2]
+            );
+        }
+
         float getDeterminant() const
         {
             return 
@@ -631,7 +643,79 @@ namespace ImmGraphics
             );
         }
         void Inverse() { operator=(getInversed()); }
-        Matrix4 getInversed() const { return getAdjoint() / Math::Abs(getDeterminant()); }
+        Matrix4 getInversed() const 
+        { 
+            //return getAdjoint() / Math::Abs(getDeterminant());
+            Matrix4 U;
+            Matrix4 L = Matrix4::Identity();
+            Matrix4 Uinv;
+            Matrix4 Linv;
+            int size = 4;
+
+            // calculate the U's first row
+            for (int j = 0; j < size; j++) {
+                U[0][j] = value[0][j];
+            }
+            // calculate the L's first column
+            for (int i = 1; i < size; i++) {
+                L[i][0] = value[i][0] / U[0][0];
+            }
+            // iterative calculation of other rows and columns
+            for (int k = 1; k < size; k++) {
+                // the k_th row of U
+                for (int j = k; j < size; j++) {
+                    // sum(L_kt*U_tj),t
+                    double s = 0.0;
+                    for (int t = 0; t < k; t++) {
+                        s += L[k][t] * U[t][j];
+                    }
+                    // U_kj = A_kj - s
+                    U[k][j] = value[k][j] - s;
+                }
+                // the k_th column of L
+                for (int i = k; i < size; i++) {
+                    // sum(L_it*U_tk),t
+                    double s = 0.0;
+                    for (int t = 0; t < k; t++) {
+                        s += L[i][t] * U[t][k];
+                    }
+                    // L_ik = (A_ik - s) / U_kk
+                    L[i][k] = (value[i][k] - s) / U[k][k];
+                }
+            }
+
+            // calculate L_inv
+            for (int j = 0; j < size; j++) {
+                for (int i = j; i < size; i++) {
+                    if (i == j) Linv[i][j] = 1 / L[i][j];
+                    else if (i < j) Linv[i][j] = 0;
+                    else {
+                        double s = 0.0;
+                        for (int k = j; k < i; k++) {
+                            s += L[i][k] * Linv[k][j];
+                        }
+                        Linv[i][j] = -Linv[j][j] * s;
+                    }
+                }
+            }
+
+            // calculate U_inv
+            for (int j = 0; j < size; j++) {
+                for (int i = j; i >= 0; i--) {
+                    if (i == j) Uinv[i][j] = 1 / U[i][j];
+                    else if (i > j) Uinv[i][j] = 0;
+                    else {
+                        double s = 0.0;
+                        for (int k = i + 1; k <= j; k++) {
+                            s += U[i][k] * Uinv[k][j];
+                        }
+                        Uinv[i][j] = -1 / U[i][i] * s;
+                    }
+                }
+            }
+
+            return Uinv * Linv;
+        }
         Matrix4 getAdjoint() const
         {
             float _00 = Matrix3(value[1][1], value[1][2], value[1][3], value[2][1], value[2][2], value[2][3], value[3][1], value[3][2], value[3][3]).getDeterminant();
@@ -816,23 +900,7 @@ namespace ImmGraphics
 
         bool Contain(const Vec2& p) const
         {
-            Vec2 ab = b - a;
-            Vec2 bc = c - b;
-            Vec2 ca = a - c;
-            Vec2 ap = p - a;
-            Vec2 bp = p - b;
-            Vec2 cp = p - c;
-
-            float va = ap ^ ab;
-            float vb = bp ^ bc;
-            float vc = cp ^ ca;
-
-            if ((va >= 0 && vb >= 0 && vc >= 0) ||
-                (va <= 0 && vb <= 0 && vc <= 0))
-                return true;
-            return false;
-
-            /*Vec3 weight;
+            Vec3 weight;
 
             weight.x = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) /
                 ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
@@ -840,7 +908,7 @@ namespace ImmGraphics
                 ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
             weight.z = 1 - weight.x - weight.y;
 
-            return weight.x >= 0 && weight.y >= 0 && weight.z >= 0;*/
+            return weight.x >= 0 && weight.y >= 0 && weight.z >= 0;
         }
 
         Vec3 Interpolation(const Vec2& p) const
@@ -880,6 +948,24 @@ namespace ImmGraphics
             t.c = Vec2(c.x, c.y);
             return t;
         }
+    };
+
+    class RectI
+    {
+    public:
+        int left, top, right, bottom;
+
+    public:
+        RectI(int left, int top, int right, int bottom)
+            : left(left), top(top), right(right), bottom(bottom) {}
+        RectI() : left(0), top(0), right(0), bottom(0) {}
+
+        int width() const { return right - left; }
+        int height() const { return bottom - top; }
+        Vec2 lt() const { return Vec2(left, top); }
+        Vec2 rt() const { return Vec2(right, top); }
+        Vec2 lb() const { return Vec2(left, bottom); }
+        Vec2 rb() const { return Vec2(right, bottom); }
     };
 
     /**
@@ -942,7 +1028,6 @@ namespace ImmGraphics
         {
             return RGB(color.x, color.y, color.z);
         }
-
 
         /*unsigned getRGBValue()
         {

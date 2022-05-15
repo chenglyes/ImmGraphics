@@ -1,5 +1,7 @@
 #include "debug.h"
 
+#include <chrono>
+#include <thread>
 #include <ctime>
 
 #define FRAME_UPDATE_INTERVAL 100   // ms
@@ -33,4 +35,9 @@ int ImmGraphics::CalculateFPS()
 float ImmGraphics::getDeltaTime()
 {
     return (float)s_deltaTime / CLOCKS_PER_SEC;
+}
+
+void ImmGraphics::WaitForSeconds(float seconds)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds((long)(seconds * 1000)));
 }
